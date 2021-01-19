@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[90]:
+# In[114]:
 
 
-get_ipython().run_line_magic('matplotlib', 'notebook # comment this line when working in VSCode')
+# %matplotlib notebook # comment this line when working in VSCode
 import aipy, uvtools
 import numpy as np
 import pylab as plt
@@ -30,13 +30,13 @@ from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 # # Generate visibility plot
 
-# In[47]:
+# In[218]:
 
 
 '''
 Generate one visibility
 '''
-def generate_vis(lsts, fqs, bl_len_ns):
+def generate_one_vis(lsts, fqs, bl_len_ns):
     # point-source and diffuse foregrounds
     vis = foregrounds.pntsrc_foreground(lsts, fqs, bl_len_ns, nsrcs=200)
     Tsky_mdl = noise.HERA_Tsky_mdl['xx']
@@ -55,7 +55,7 @@ def generate_vis(lsts, fqs, bl_len_ns):
     vis = sigchain.apply_xtalk(vis, xtalk)
     vis = sigchain.apply_gains(vis, g, (1,2))
 
-    return vis
+    return vis[:, :, np.newaxis]
 
 '''
 Plot one visibility
@@ -80,8 +80,17 @@ def plot_one_vis(vis, ylim, MX, DRNG, figsize):
 
     fig.text(0.02, 0.5, 'LST [rad]', ha='center', va='center', rotation='vertical')
 
+'''
+Generate n visibilities
+'''
+def generate_vis(n, lsts, fqs, bl_len_ns):
+    res = []
+    for i in range(n):
+        res.append(generate_one_vis(lsts, fqs, bl_len_ns))
+    return np.array(res)
 
-# In[48]:
+
+# In[219]:
 
 
 lsts = np.linspace(1, 0.5*np.pi, 1500, endpoint=False) # local sidereal times; start range, stop range, number of snapshots
@@ -89,19 +98,10 @@ lsts = np.linspace(1, 0.5*np.pi, 1500, endpoint=False) # local sidereal times; s
 fqs = np.linspace(.1, .2, 1024, endpoint=False) # frequencies in GHz; start freq, end freq, number of channels
 bl_len_ns = np.array([30.,0,0]) # ENU coordinates
 
-vis = generate_vis(lsts, fqs, bl_len_ns)
+vis = generate_one_vis(lsts, fqs, bl_len_ns)
 print(type(vis))
 print(vis.shape)
-plot_one_vis(vis, 1500, 2.5, 3, (7,7))
-# uvtools.plot.waterfall?
-
-
-# In[42]:
-
-
-# foregrounds.pntsrc_foreground?
-# print(type(vis[120][555]))
-# mask[120][555]
+plot_one_vis(vis[:,:,0], 1500, 2.5, 3, (7,7))
 
 
 # # RFI mask
@@ -112,7 +112,7 @@ plot_one_vis(vis, 1500, 2.5, 3, (7,7))
 #   - times match: using range π/2 for lsts in vis plot, with 1500 snapshots
 # - 1024 channels, 100-200 MHz
 
-# In[103]:
+# In[79]:
 
 
 f = h5py.File("mask_HERA.hdf5", "r")
@@ -127,19 +127,15 @@ plt.ylabel('Time (JD)')
 plt.grid()
 plt.colorbar()
 plt.show()
-
-
-# In[44]:
-
-
 print(mask.shape)
+print(mask[()])
 
 
-# ### Generate custom mask
+# ### Generate custom masks
 # 
 # Take horizontal or vertical pixel slice of the mask. Spans of the `True` sections = spans of RFI
 
-# In[84]:
+# In[54]:
 
 
 '''
@@ -148,24 +144,39 @@ Get RFI spans from one row/col
 def get_RFI_spans(row):
     spans = [(key, sum(1 for _ in group)) for key, group in itertools.groupby(row)]
     ############## ask Adrian ##############
-#     spans = spans[1:-1] # remove first and last element of mask; 
+#     spans = spans[1:-1] # remove first and last element of mask? 
     if len(spans) == 1:
         raise Exception("Error: all values in the row/col are True; select another one")
     return spans
 
-rfi_widths = get_RFI_spans(mask[1444])
+rfi_widths = get_RFI_spans(mask[1434])
 rfi_heights = get_RFI_spans(mask[:,166])
 
-print("RFI widths", rfi_widths)
-print("RFI heights", rfi_heights)
+# print("RFI widths", rfi_widths)
+# print("RFI heights", rfi_heights)
 
 
 # Generate randomized mask from spans
 
-# In[ ]:
+# In[129]:
 
 
-def generate_random_mask(time, freq, widths, heights):
+def plot_mask(mask, mask2, mask3):
+    plt.figure(figsize=(12,12))
+    plt.subplot(1, 3, 1)
+    plt.grid(False)
+    plt.imshow(mask, cmap='inferno_r') # black is RFI
+    plt.subplot(1, 3, 2)
+    plt.grid(False)
+    plt.imshow(mask2, cmap='inferno_r')
+    plt.subplot(1, 3, 3)
+    plt.grid(False)
+    plt.imshow(mask3, cmap='inferno_r')
+
+'''
+Generate random RFI mask with dimensions time x freq, given RFI spans from a real mask
+'''
+def generate_one_mask(time, freq, widths, heights, plot=False):
     random.shuffle(widths)
     random.shuffle(heights)
     
@@ -173,148 +184,126 @@ def generate_random_mask(time, freq, widths, heights):
     one_row = []
     for w in widths:
         one_row.extend([w[0]] * w[1])
-    one_row = np.array(one_row).reshape(1, freq)
-    print(one_row.shape)
-    print(one_row)
     mask = np.tile(one_row, (time, 1)) # copy one_row `time` times in the vertical direction
-#     print(mask)
+#     print(mask.shape)
 #     print(widths)
-    plt.grid(False)
-    plt.imshow(mask, cmap='inferno_r') # black is RFI
     
     # col by col
     one_col = []
     for w in heights:
         one_col.extend([w[0]] * w[1])
-    one_col = np.array(one_col).reshape(1, len(one_col)) # take transpose to turn into a pixel column
-#     print(one_col)
-    mask2 = np.tile(np.array(one_col), (1, freq))
+    mask2 = np.tile(np.array(one_col).reshape((time, 1)), (1, freq))
+#     print(mask2.shape)
     
-    plt.grid(False)
-    plt.imshow(mask2, cmap='inferno_r') # black is RFI
-    
-    mask = np.logical_and(mask, mask2)
-    
+    combined_mask = np.logical_or(mask, mask2) # any cell with True will have RFI
+    if plot:
+        plot_mask(mask, mask2, combined_mask)
+    return combined_mask
 
-            
-    
-generate_random_mask(1500, 1024, rfi_widths, rfi_heights)
-
-
-# In[ ]:
-
-
-
+'''
+Generate n masks
+'''
+def generate_masks(n, time, freq, widths, heights):
+    res = []
+    for i in range(n):
+        res.append(generate_one_mask(time, freq, widths, heights))
+    return np.array(res)
 
 
-# In[ ]:
+# In[126]:
 
 
+custom_mask = generate_one_mask(1500, 1024, rfi_widths, rfi_heights, plot=True)
+print(custom_mask)
 
 
+# ### Apply mask to visibility
 
-# ### Apply mask to visibility (doesn't work yet)
-
-# In[7]:
+# In[112]:
 
 
-# vis_new = vis[mask]
-# print(vis_new.shape)
-# plot_one_vis(vis_new, 1500, 2.5, 3)
+vis[custom_mask == False] = 0
+print(vis.shape)
 
 
 # # Create dataset
 
-# In[8]:
+# Create visibilities and masks
+
+# In[220]:
 
 
-# labelled_data = []
-# for x in range(mask.shape[0]):
-#     for y in range(mask.shape[1]):
-#         if mask[x][y] == False: # no RFI
-#             labelled_data.append([x, y, vis[x][y]])
-#         else:
-#             masked.append([x, y, vis[x][y]])
+lsts = np.linspace(1, 0.5*np.pi, 1500, endpoint=False) # local sidereal times; start range, stop range, number of snapshots
+# 1500 to match the mask; π/2 ~ 6h
+fqs = np.linspace(.1, .2, 1024, endpoint=False) # frequencies in GHz; start freq, end freq, number of channels
+bl_len_ns = np.array([30.,0,0]) # ENU coordinates
 
-# df = pd.DataFrame(labelled_data, columns=["Time", "Freq", "Vis"])
-# df.to_csv("labelled_data.csv")
+vis = generate_vis(10, lsts, fqs, bl_len_ns)
+mask = generate_one_mask(1500, 1024, rfi_widths, rfi_heights)
 
 
-# df2 = pd.DataFrame(masked, columns=["Time", "Freq", "Vis"])
-# df2.to_csv("masked.csv")
+# Create data and labels
+
+# In[221]:
 
 
-# df.head()
+data = vis.copy()
+for i, v in enumerate(data):
+    v[mask == False] = 0
+# print(np.count_nonzero(train_dataset[0]==0)) # check number of 0's in a given vis (to check if mask worked)
+
+labels = vis
 
 
-# In[39]:
+# Separate train and test sets
+
+# In[222]:
 
 
-df = pd.read_csv("labelled_data.csv", index_col=0)
-df['Vis'] = df['Vis'].apply(lambda x: np.complex128(x)) # Import vis as complex numbers
-# df2 = pd.read_csv("masked.csv", index_col=0)
-# df2['Vis'] = df2['Vis'].apply(lambda x: np.complex128(x)) # Import as complex numbers
-df.head()
+from sklearn.model_selection import train_test_split
 
-
-# In[40]:
-
-
-train_dataset = df.sample(frac=0.8, random_state=0)
-test_dataset = df.drop(train_dataset.index)
-
-
-# In[41]:
-
-
-train_features = train_dataset.copy()
-test_features = test_dataset.copy()
-
-train_labels = train_features.pop("Vis")
-test_labels = test_features.pop("Vis")
-
-type(train_labels[0])
-
-
-# In[42]:
-
-
-# Normalize
-normalizer = preprocessing.Normalization()
-normalizer.adapt(np.array(train_features))
+X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.33, random_state=42)
+print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 
 
 # # ML model
 
-# In[47]:
+# In[228]:
 
 
-def build_and_compile_model(norm):
+def build_and_compile_model():
   model = keras.Sequential([
-      norm,
-      layers.Dense(64, activation='relu'),
-      layers.Dense(64, activation='relu'),
+#       layers.Dense(1024, activation='relu', input_shape=(1500, 1024)),
+      layers.Conv2D(64, kernel_size=1, activation='relu', input_shape=(1500,1024,1)),
+      layers.Conv2D(32, kernel_size=1, activation='relu'),
       layers.Dense(1)
   ])
 
-  model.compile(loss='mean_absolute_error', optimizer=tf.keras.optimizers.Adam(0.001), metrics=['mae','acc'])
+  model.compile(loss='mae', optimizer=tf.keras.optimizers.Adam(0.001), metrics=['mae','acc'])
   return model
 
 
-# In[48]:
+# In[230]:
 
 
-model = build_and_compile_model(normalizer)
+model = build_and_compile_model()
 model.summary()
 
 
-# In[49]:
+# In[231]:
 
 
-get_ipython().run_cell_magic('time', '', 'history = model.fit(\n    train_features, train_labels,\n    validation_split=0.2,\n    verbose=1, epochs=100)')
+get_ipython().run_cell_magic('time', '', 'history = model.fit(\n    X_train, y_train,\n    validation_split=0.2,\n    verbose=1, epochs=5)')
 
 
-# In[51]:
+# In[232]:
+
+
+preds = model.predict(X_train)
+preds
+
+
+# In[233]:
 
 
 def plot_loss(history):

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[114]:
+# In[7]:
 
 
 # %matplotlib notebook # comment this line when working in VSCode
@@ -30,7 +30,7 @@ from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 # # Generate visibility plot
 
-# In[218]:
+# In[17]:
 
 
 '''
@@ -43,11 +43,11 @@ def generate_one_vis(lsts, fqs, bl_len_ns):
     vis += foregrounds.diffuse_foreground(lsts, fqs, bl_len_ns, Tsky_mdl)
 
     # noise
-#     tsky = noise.resample_Tsky(fqs,lsts,Tsky_mdl=noise.HERA_Tsky_mdl['xx'])
-#     t_rx = 150.
-#     OMEGA_P = (0.72)*np.ones(1024)
-#     nos_jy = noise.sky_noise_jy(tsky + t_rx, fqs, lsts, OMEGA_P)
-#     vis += nos_jy
+    tsky = noise.resample_Tsky(fqs,lsts,Tsky_mdl=noise.HERA_Tsky_mdl['xx'])
+    t_rx = 150.
+    OMEGA_P = (0.72)*np.ones(1024)
+    nos_jy = noise.sky_noise_jy(tsky + t_rx, fqs, lsts, OMEGA_P)
+    vis += nos_jy
     
     # crosstalk, gains
     xtalk = sigchain.gen_whitenoise_xtalk(fqs)
@@ -66,14 +66,16 @@ def plot_one_vis(vis, ylim, MX, DRNG, figsize):
     fig = plt.figure(figsize=figsize)
     ax1 = fig.add_subplot(211)
     ax2 = fig.add_subplot(212)
-      
+
     fig.sca(ax1)
     uvtools.plot.waterfall(vis, mode='log', mx=MX, drng=DRNG)
+    plt.grid(False)  
     plt.colorbar(label=r"Amplitude [log$_{10}$(V/Jy)]")
     plt.ylim(0,ylim)
 
     fig.sca(ax2)
     uvtools.plot.waterfall(vis, mode='phs')
+    plt.grid(False)
     plt.colorbar(label="Phase [rad]")
     plt.ylim(0,ylim)
     plt.xlabel("Frequency channel")
@@ -90,7 +92,7 @@ def generate_vis(n, lsts, fqs, bl_len_ns):
     return np.array(res)
 
 
-# In[219]:
+# In[18]:
 
 
 lsts = np.linspace(1, 0.5*np.pi, 1500, endpoint=False) # local sidereal times; start range, stop range, number of snapshots
@@ -112,7 +114,7 @@ plot_one_vis(vis[:,:,0], 1500, 2.5, 3, (7,7))
 #   - times match: using range π/2 for lsts in vis plot, with 1500 snapshots
 # - 1024 channels, 100-200 MHz
 
-# In[79]:
+# In[10]:
 
 
 f = h5py.File("mask_HERA.hdf5", "r")
@@ -135,7 +137,7 @@ print(mask[()])
 # 
 # Take horizontal or vertical pixel slice of the mask. Spans of the `True` sections = spans of RFI
 
-# In[54]:
+# In[11]:
 
 
 '''
@@ -158,7 +160,7 @@ rfi_heights = get_RFI_spans(mask[:,166])
 
 # Generate randomized mask from spans
 
-# In[129]:
+# In[12]:
 
 
 def plot_mask(mask, mask2, mask3):
@@ -210,7 +212,7 @@ def generate_masks(n, time, freq, widths, heights):
     return np.array(res)
 
 
-# In[126]:
+# In[13]:
 
 
 custom_mask = generate_one_mask(1500, 1024, rfi_widths, rfi_heights, plot=True)
@@ -219,18 +221,18 @@ print(custom_mask)
 
 # ### Apply mask to visibility
 
-# In[112]:
+# In[19]:
 
 
-vis[custom_mask == False] = 0
-print(vis.shape)
+vis[custom_mask == True] = 0
+plot_one_vis(vis[:,:,0], 1500, 2.5, 3, (7,7))
 
 
 # # Create dataset
 
 # Create visibilities and masks
 
-# In[220]:
+# In[234]:
 
 
 lsts = np.linspace(1, 0.5*np.pi, 1500, endpoint=False) # local sidereal times; start range, stop range, number of snapshots
@@ -238,26 +240,47 @@ lsts = np.linspace(1, 0.5*np.pi, 1500, endpoint=False) # local sidereal times; s
 fqs = np.linspace(.1, .2, 1024, endpoint=False) # frequencies in GHz; start freq, end freq, number of channels
 bl_len_ns = np.array([30.,0,0]) # ENU coordinates
 
-vis = generate_vis(10, lsts, fqs, bl_len_ns)
+vis = generate_vis(500, lsts, fqs, bl_len_ns)
 mask = generate_one_mask(1500, 1024, rfi_widths, rfi_heights)
 
 
 # Create data and labels
 
-# In[221]:
+# In[235]:
 
 
 data = vis.copy()
 for i, v in enumerate(data):
-    v[mask == False] = 0
+    v[mask == True] = 0
 # print(np.count_nonzero(train_dataset[0]==0)) # check number of 0's in a given vis (to check if mask worked)
 
 labels = vis
 
 
+# In[ ]:
+
+
+data = np.load("dataset.npy")
+labels = np.load("labels.npy")
+print(data.shape, labels.shape)
+
+
+# In[ ]:
+
+
+np.save("dataset.npy", data)
+np.save("labels.npy", labels)
+
+
+# In[ ]:
+
+
+
+
+
 # Separate train and test sets
 
-# In[222]:
+# In[ ]:
 
 
 from sklearn.model_selection import train_test_split
@@ -274,8 +297,8 @@ print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 def build_and_compile_model():
   model = keras.Sequential([
 #       layers.Dense(1024, activation='relu', input_shape=(1500, 1024)),
-      layers.Conv2D(64, kernel_size=1, activation='relu', input_shape=(1500,1024,1)),
-      layers.Conv2D(32, kernel_size=1, activation='relu'),
+      layers.Conv2D(64, kernel_size=3, activation='relu', padding='same', input_shape=(1500,1024,1)),
+      layers.Conv2D(32, kernel_size=3, activation='relu', padding='same'),
       layers.Dense(1)
   ])
 

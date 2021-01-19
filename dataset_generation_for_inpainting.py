@@ -30,7 +30,13 @@ from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 # # Generate visibility plot
 
-# In[17]:
+# In[65]:
+
+
+get_ipython().run_line_magic('pinfo', 'sigchain.gen_gains')
+
+
+# In[77]:
 
 
 '''
@@ -38,20 +44,21 @@ Generate one visibility
 '''
 def generate_one_vis(lsts, fqs, bl_len_ns):
     # point-source and diffuse foregrounds
-    vis = foregrounds.pntsrc_foreground(lsts, fqs, bl_len_ns, nsrcs=200)
     Tsky_mdl = noise.HERA_Tsky_mdl['xx']
-    vis += foregrounds.diffuse_foreground(lsts, fqs, bl_len_ns, Tsky_mdl)
+    vis = foregrounds.diffuse_foreground(lsts, fqs, bl_len_ns, Tsky_mdl)
+    vis += foregrounds.pntsrc_foreground(lsts, fqs, bl_len_ns, nsrcs=200)
 
     # noise
     tsky = noise.resample_Tsky(fqs,lsts,Tsky_mdl=noise.HERA_Tsky_mdl['xx'])
     t_rx = 150.
-    OMEGA_P = (0.72)*np.ones(1024)
+#     OMEGA_P = (0.72)*np.ones(1024) # from before; fraction of sky telescope is looking at
+    OMEGA_P = noise.bm_poly_to_omega_p(fqs) # default; from the hera_sim docs
     nos_jy = noise.sky_noise_jy(tsky + t_rx, fqs, lsts, OMEGA_P)
     vis += nos_jy
     
     # crosstalk, gains
     xtalk = sigchain.gen_whitenoise_xtalk(fqs)
-    g = sigchain.gen_gains(fqs, [1,2,3])
+    g = sigchain.gen_gains(fqs, [1,2,3,4], 20) # default 0.1
     vis = sigchain.apply_xtalk(vis, xtalk)
     vis = sigchain.apply_gains(vis, g, (1,2))
 
@@ -92,10 +99,16 @@ def generate_vis(n, lsts, fqs, bl_len_ns):
     return np.array(res)
 
 
-# In[18]:
+# In[ ]:
 
 
-lsts = np.linspace(1, 0.5*np.pi, 1500, endpoint=False) # local sidereal times; start range, stop range, number of snapshots
+
+
+
+# In[78]:
+
+
+lsts = np.linspace(0, 0.5*np.pi, 1500, endpoint=False) # local sidereal times; start range, stop range, number of snapshots
 # 1500 to match the mask; π/2 ~ 6h
 fqs = np.linspace(.1, .2, 1024, endpoint=False) # frequencies in GHz; start freq, end freq, number of channels
 bl_len_ns = np.array([30.,0,0]) # ENU coordinates
@@ -145,8 +158,7 @@ Get RFI spans from one row/col
 '''
 def get_RFI_spans(row):
     spans = [(key, sum(1 for _ in group)) for key, group in itertools.groupby(row)]
-    ############## ask Adrian ##############
-#     spans = spans[1:-1] # remove first and last element of mask? 
+#     spans = spans[1:-1] # remove first and last element of mask?
     if len(spans) == 1:
         raise Exception("Error: all values in the row/col are True; select another one")
     return spans
@@ -334,7 +346,7 @@ def plot_loss(history):
   plt.plot(history.history['val_loss'], label='val_loss')
   plt.ylim([0, 10])
   plt.xlabel('Epoch')
-  plt.ylabel('Error [MPG]')
+  plt.ylabel('Error')
   plt.legend()
   plt.grid(True)
 

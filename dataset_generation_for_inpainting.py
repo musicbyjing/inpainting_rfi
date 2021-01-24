@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[54]:
+# In[1]:
 
 
 get_ipython().run_line_magic('matplotlib', 'inline')
@@ -38,7 +38,7 @@ from sklearn.preprocessing import MinMaxScaler, StandardScaler
 #   - times match: using range π/2 for lsts in vis plot, with 1500 snapshots
 # - 1024 channels, 100-200 MHz
 
-# In[73]:
+# In[2]:
 
 
 f = h5py.File("mask_HERA.hdf5", "r")
@@ -64,7 +64,7 @@ num_freq_channels = mask.shape[1]
 # 
 # Take horizontal or vertical pixel slice of the mask. Spans of the `True` sections = spans of RFI
 
-# In[93]:
+# In[3]:
 
 
 '''
@@ -93,7 +93,7 @@ print("RFI widths", rfi_widths)
 
 # Generate randomized mask from spans
 
-# In[57]:
+# In[4]:
 
 
 def plot_mask(mask, mask2, mask3):
@@ -145,7 +145,7 @@ def generate_masks(n, time, freq, widths, heights):
     return np.array(res)
 
 
-# In[74]:
+# In[5]:
 
 
 custom_mask = generate_one_mask(num_jd, num_freq_channels-(start_mask+end_mask), rfi_widths, rfi_heights, plot=True)
@@ -154,13 +154,13 @@ custom_mask = generate_one_mask(num_jd, num_freq_channels-(start_mask+end_mask),
 
 # ### Visibility waterfall plot
 
-# In[64]:
+# In[6]:
 
 
 # sigchain.gen_gains?
 
 
-# In[103]:
+# In[7]:
 
 
 '''
@@ -225,7 +225,7 @@ def generate_vis(n, lsts, fqs, bl_len_ns):
 
 # Calculate start freq, end freq, and # channels
 
-# In[104]:
+# In[8]:
 
 
 # Original range: 100 - 200 GHz, 1024 channels
@@ -236,24 +236,22 @@ num_reduced_channels = num_freq_channels - start_mask - end_mask
 print(start_freq, end_freq, num_reduced_channels)
 
 
-# In[105]:
+# In[9]:
 
 
-get_ipython().run_line_magic('pinfo', 'foregrounds.diffuse_foreground')
+# foregrounds.diffuse_foreground?
 
 
-# In[106]:
+# In[10]:
 
 
 lsts = np.linspace(0, 0.5*np.pi, 1500, endpoint=False) # local sidereal times; start range, stop range, number of snapshots
 # 1500 to match the mask; π/2 ~ 6h
-fqs = np.linspace(start_freq, end_freq, 1024, endpoint=False) # frequencies in GHz; start freq, end freq, number of channels
-################### why does this require 1024 channels to get 818 channels??
+fqs = np.linspace(start_freq, end_freq, num_reduced_channels, endpoint=False) # frequencies in GHz; start freq, end freq, number of channels
 # fqs = np.linspace(.1, .2, 1024, endpoint=False) # original
 bl_len_ns = np.array([30.,0,0]) # ENU coordinates
 
 vis = generate_one_vis(lsts, fqs, bl_len_ns)
-vis = vis[:, start_mask:(vis.shape[1]-end_mask)] # to account for start and end mask
 print(vis.shape)
 plot_one_vis(vis[:,:,0], 1500, 2.5, 3, (7,7))
 
@@ -262,7 +260,7 @@ plot_one_vis(vis[:,:,0], 1500, 2.5, 3, (7,7))
 
 # ### Apply mask to visibility
 
-# In[95]:
+# In[11]:
 
 
 vis[custom_mask == True] = 0
@@ -273,56 +271,49 @@ plot_one_vis(vis[:,:,0], 1500, 2.5, 3, (7,7))
 
 # Create visibilities and masks
 
-# In[ ]:
+# In[23]:
 
 
-lsts = np.linspace(0, 0.5*np.pi, 1500, endpoint=False) # local sidereal times; start range, stop range, number of snapshots
-# 1500 to match the mask; π/2 ~ 6h
-fqs = np.linspace(start_freq, end_freq, num_reduced_channels, endpoint=False) # frequencies in GHz; start freq, end freq, number of channels
-bl_len_ns = np.array([30.,0,0]) # ENU coordinates
+def create_dataset(n):
+    lsts = np.linspace(0, 0.5*np.pi, 1500, endpoint=False) # local sidereal times; start range, stop range, number of snapshots
+    # 1500 to match the mask; π/2 ~ 6h
+    fqs = np.linspace(start_freq, end_freq, num_reduced_channels, endpoint=False) # frequencies in GHz; start freq, end freq, number of channels
+    bl_len_ns = np.array([30.,0,0]) # ENU coordinates
 
-vis = generate_vis(10, lsts, fqs, bl_len_ns)
-mask = generate_one_mask(1500, 1024-(start_mask+end_mask), rfi_widths, rfi_heights)
+    # Generate vis and mask
+    vis = generate_vis(n, lsts, fqs, bl_len_ns)
+    mask = generate_one_mask(1500, num_reduced_channels, rfi_widths, rfi_heights)
+    
+    # Apply mask to data
+    data = vis.copy()
+    for i, v in enumerate(data):
+        v[mask == True] = 0
+    # print(np.count_nonzero(train_dataset[0]==0)) # check number of 0's in a given vis (to check if mask worked)
+    labels = vis  
+    
+    np.save(f"dataset{n}.npy", data)
+    np.save(f"labels{n}.npy", labels)
+    print(data.shape, labels.shape)
+    return data, labels
+    
+def load_dataset(n):
+    data = np.load(f"dataset{n}.npy")
+    labels = np.load(f"labels{n}.npy")
+    print(data.shape, labels.shape)
+    return data, labels
 
 
 # Create data and labels
 
-# In[101]:
+# In[24]:
 
 
-data = vis.copy()
-for i, v in enumerate(data):
-    v[mask == True] = 0
-
-# print(np.count_nonzero(train_dataset[0]==0)) # check number of 0's in a given vis (to check if mask worked)
-
-labels = vis
-
-
-# In[ ]:
-
-
-data = np.load("dataset.npy")
-labels = np.load("labels.npy")
-print(data.shape, labels.shape)
-
-
-# In[ ]:
-
-
-np.save("dataset.npy", data)
-np.save("labels.npy", labels)
-
-
-# In[ ]:
-
-
-
+data, labels = create_dataset(50)
 
 
 # Separate train and test sets
 
-# In[102]:
+# In[25]:
 
 
 from sklearn.model_selection import train_test_split
@@ -333,29 +324,28 @@ print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 
 # # ML model
 
-# In[228]:
+# In[33]:
 
 
 def build_and_compile_model():
   model = keras.Sequential([
-#       layers.Dense(1024, activation='relu', input_shape=(1500, 1024)),
-      layers.Conv2D(64, kernel_size=3, activation='relu', padding='same', input_shape=(1500,1024,1)),
+      layers.Conv2D(64, kernel_size=3, activation='relu', padding='same', input_shape=(1500,818,1)),
       layers.Conv2D(32, kernel_size=3, activation='relu', padding='same'),
-      layers.Dense(1)
+      layers.Dense(1, activation='relu')
   ])
 
   model.compile(loss='mae', optimizer=tf.keras.optimizers.Adam(0.001), metrics=['mae','acc'])
   return model
 
 
-# In[230]:
+# In[34]:
 
 
 model = build_and_compile_model()
 model.summary()
 
 
-# In[231]:
+# In[ ]:
 
 
 get_ipython().run_cell_magic('time', '', 'history = model.fit(\n    X_train, y_train,\n    validation_split=0.2,\n    verbose=1, epochs=5)')

@@ -1,4 +1,3 @@
-
 #!/bin/bash
 #SBATCH --account=def-acliu
 #SBATCH --time=1:00:00

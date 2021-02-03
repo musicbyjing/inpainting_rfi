@@ -1,6 +1,5 @@
 *.npy
 generated/*
-data/*
 datasets_for_learning/*
 .ipynb_checkpoints/*
 .DS_Store

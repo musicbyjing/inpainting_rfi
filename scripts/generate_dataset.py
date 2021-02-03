@@ -150,9 +150,9 @@ def create_dataset(vis_list, mask_list):
     # Save files
     prefix = f"{int(time.time())}_{len(vis_list)}_examples_{len(mask_list)}_masks"
 
-    np.save(os.path.join("generated", f"{prefix}_dataset.npy"), data)
-    np.save(os.path.join("generated", f"{prefix}_labels.npy"), labels)
-    np.save(os.path.join("generated", f"{prefix}_masks.npy"), mask_list)
+    np.save(os.path.join("data", f"{prefix}_dataset.npy"), data)
+    np.save(os.path.join("data", f"{prefix}_labels.npy"), labels)
+    np.save(os.path.join("data", f"{prefix}_masks.npy"), mask_list)
     
     print("Dataset saved.")
     print(f"Data shape: {data.shape}. Labels shape: {labels.shape}")

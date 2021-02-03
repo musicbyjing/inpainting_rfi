@@ -23,13 +23,9 @@ def load_real_mask(filename):
     Load a real mask (e.g. from HERA)
     '''
     f = h5py.File(filename, "r")
-    plt.figure(figsize=(20,12))
     saurabhs_mask = f['mask'] # the "actual" mask
-
     num_jd = saurabhs_mask.shape[0]
     num_freq_channels = saurabhs_mask.shape[1]
-
-    f.close()
 
     return saurabhs_mask, num_jd, num_freq_channels
 
@@ -140,7 +136,7 @@ def create_dataset(vis_list, mask_list):
         mask = mask_list[0]
         for i, v in enumerate(data):
             v[mask == True] = 0
-            v[:, :, :, 2] = np.logical_not(mask) # Set mask as 3rd channel
+            v[:, :, 2] = np.logical_not(mask) # Set mask as 3rd channel
             # print(np.count_nonzero(train_dataset[0]==0)) # check number of 0's in a given vis (to check if mask worked)
         labels = vis_list 
 
@@ -156,13 +152,13 @@ def create_dataset(vis_list, mask_list):
     # Save files
     prefix = f"{int(time.time())}_{len(vis_list)}_examples_{len(mask_list)}_masks"
 
-    np.save(f"{prefix}_dataset.npy", data)
-    np.save(f"{prefix}_labels.npy", labels)
-    np.save(f"{prefix}_masks.npy", mask_list)
+    np.save(os.path.join("generated", f"{prefix}_dataset.npy", data))
+    np.save(os.path.join("generated", f"{prefix}_labels.npy", labels))
+    np.save(os.path.join("generated", f"{prefix}_masks.npy", mask_list))
     
     print("Dataset saved.")
     print(f"Data shape: {data.shape}. Labels shape: {labels.shape}")
-    
+
 
 ##############################
 ##### main function #####
@@ -179,11 +175,10 @@ def main():
     n_examples = args.n_examples
 
     # generate masks
-    saurabhs_mask, num_jd, num_freq_channels = load_real_mask(os.path.join(os.path.dirname(__file__), "data", "mask_HERA.hdf5"))
+    saurabhs_mask, num_jd, num_freq_channels = load_real_mask(os.path.join(os.path.dirname(__file__), "..", "data", "mask_HERA.hdf5"))
     # initially 1500 x 818
     rfi_widths, start_mask, end_mask = get_RFI_spans(saurabhs_mask[1434], isRow=True)
     rfi_heights = get_RFI_spans(saurabhs_mask[:,166])
-    custom_mask = generate_masks(n_masks, num_jd, num_freq_channels-(start_mask+end_mask), rfi_widths, rfi_heights)
 
     # Calculate start freq, end freq, and # channels
     start_freq = (100 + 100*start_mask/num_freq_channels) / 1000
@@ -201,8 +196,11 @@ def main():
     vis_list = generate_vis_plots(n_examples, lsts, fqs, bl_len_ns)
     mask_list = generate_masks(n_masks, num_jd, num_reduced_channels, rfi_widths, rfi_heights)
 
+    print(type(vis_list))
+    print(type(mask_list))
+
     # create dataset
-    data, labels, mask = create_dataset(vis_list, mask_list)
+    create_dataset(vis_list, mask_list)
 
 
 if __name__ == "__main__":

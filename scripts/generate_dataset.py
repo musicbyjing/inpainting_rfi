@@ -11,8 +11,6 @@ import itertools
 import time
 
 from hera_sim import foregrounds, noise, sigchain, rfi, simulate
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
-
 
 ##############################
 ### Generate custom masks ###

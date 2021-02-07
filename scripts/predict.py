@@ -2,68 +2,49 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import argparse
+import random
 
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import backend as K
 
 
-def make_predictions(input):
-  preds = model.predict(input)
-  # print(preds)
-  return preds
+def predict(input):
+    return model.predict(np.array([input, ]))[0] # since model.predict() needs an array
 
-def download_predictions(preds, i):
-  np.save("pred.npy", preds[i])
-  np.save("og.npy", X_train[i])
-  np.save("true.npy", y_train[i])
-  files.download('pred.npy')
-  files.download('og.npy')
-  files.download('true.npy')
+def masked_MSE(y_true, y_pred):
+    '''
+    MSE, only over masked areas
+    '''
+    for yt in y_true: # for each example in the batch
+        yt = yt[mask == True]
+    for yp in y_pred:
+        yp = yp[mask == True]
+    loss_val = K.mean(K.square(y_pred - y_true))
+    return loss_val
 
-  # Apply mask to predictions
-  # for j, pred in enumerate(preds):
-    # pred[mask == False] = X_train[j][mask == False][:,:2] # (1-mask)*og + mask*pred
-  
-  # np.save("pred_masked.npy", preds[i])
-  # files.download('pred_masked.npy')
+def load_model(model_name):
+    folder = "models"
+    return keras.models.load_model(os.path.join(folder, f"{model_name}.npy"), custom_objects={'masked_MSE': masked_MSE})
 
+def get_predictions(X_train):
+    # Get a random example from X_train
+    i = random.randint(0, len(X_train)-1)
+    
+    np.save("pred.npy", predict(X_train[i]))
+    np.save("og.npy", X_train[i])
+    np.save("true.npy", y_train[i])
 
-# In[ ]:
+    # Add unmasked part of original to prediction
+    pred[mask == False] = X_train[i][mask == False][:,:2] # (1-mask)*og + mask*pred
+    np.save("pred_masked.npy", preds[i])
 
+def main():
+    # cmd line args
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--id", type=str, help="ID of data to use for making predictions")
+    args = parser.parse_args()
 
-# eye = np.dstack([np.zeros((1500, 818))]*2)
-# eye = np.dstack([np.eye(1500, 818)]*2)
-# print(eye.shape)
-# pred = model.predict(np.array([eye,]))
-np.save("pred.npy", X_train[6])
-files.download('pred.npy')
-
-
-# In[ ]:
-
-
-pred.shape
-
-
-# In[98]:
-
-
-preds = make_predictions(X_train)
-# print(X_train[0].shape)
-# print(mask.shape)
-
-
-# In[99]:
-
-
-download_predictions(preds, 6)
-
-
-# In[ ]:
-
-
-plt.imshow(preds[0][:,:,0])
-
-
-# In[ ]:
+    file_id = args.file_id
+    ########################
+    ### NEED TO FIND A WAY TO GET A TRAINING EXAMPLE AND GROUND TRUTH IN HERE!!! ####

@@ -12,7 +12,7 @@ def load_dataset(file_id):
     folder = "data"
     data = np.load(os.path.join(folder, f"{file_id}_dataset.npy"))
     labels = np.load(os.path.join(folder, f"{file_id}_labels.npy"))
-    mask = np.load(os.path.join(folder,f"{file_id}_mask.npy"))
+    mask = np.load(os.path.join(folder,f"{file_id}_masks.npy"))
     # print("DATA SHAPE", data.shape, "LABELS SHAPE", labels.shape)
     return data, labels, mask
 
@@ -32,19 +32,22 @@ def build_and_compile_model():
     based on AlexNet from 'https://towardsdatascience.com/implementing-alexnet-cnn-architecture-using-tensorflow-2-0-and-keras-2113e090ad98'
     '''
     model = keras.models.Sequential([
-        keras.layers.Conv2D(filters=96, kernel_size=(11,11), strides=(4,4), activation='relu', input_shape=(227,227,3)),
+        keras.layers.Conv2D(filters=96, kernel_size=(11,11), padding='same', activation='relu', input_shape=(1500,818,3)),
         keras.layers.BatchNormalization(),
-        keras.layers.MaxPool2D(pool_size=(3,3), strides=(2,2)),
-        keras.layers.Conv2D(filters=256, kernel_size=(5,5), strides=(1,1), activation='relu', padding="same"),
+        keras.layers.MaxPool2D(pool_size=(2,2)),
+        keras.layers.UpSampling2D((2,2)),
+        keras.layers.Conv2D(filters=256, kernel_size=(5,5), activation='relu', padding="same"),
         keras.layers.BatchNormalization(),
-        keras.layers.MaxPool2D(pool_size=(3,3), strides=(2,2)),
+        keras.layers.MaxPool2D(pool_size=(2,2)),
+        keras.layers.UpSampling2D((2,2)),
         keras.layers.Conv2D(filters=384, kernel_size=(3,3), strides=(1,1), activation='relu', padding="same"),
         keras.layers.BatchNormalization(),
         keras.layers.Conv2D(filters=384, kernel_size=(1,1), strides=(1,1), activation='relu', padding="same"),
         keras.layers.BatchNormalization(),
         keras.layers.Conv2D(filters=256, kernel_size=(1,1), strides=(1,1), activation='relu', padding="same"),
         keras.layers.BatchNormalization(),
-#         keras.layers.MaxPool2D(pool_size=(3,3), strides=(2,2)),
+        keras.layers.MaxPool2D(pool_size=(2,2)),
+        keras.layers.UpSampling2D((2,2)),
         keras.layers.Dense(4096, activation='relu'),
         keras.layers.Dropout(0.5),
         keras.layers.Dense(4096, activation='relu'),
@@ -54,7 +57,6 @@ def build_and_compile_model():
     
     model.compile(loss=masked_MSE, optimizer=tf.keras.optimizers.Adam(0.001), metrics=[masked_MSE])
     return model
-
 
 def plot_loss(history, file_id):
   plt.plot(history.history['loss'], label='loss')
@@ -76,19 +78,19 @@ def main():
     max_epochs = args.max_epochs
     file_id = args.id
 
-    # data, labels, mask = load_dataset(file_id)
-    # X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.33, random_state=42)
-    # del data
-    # print("X_TRAIN", X_train.shape, "X_TEST", X_test.shape, "Y_TRAIN", y_train.shape, "Y_TEST", y_test.shape)
-    # print("MASK", mask.shape)
+    data, labels, mask = load_dataset(file_id)
+    X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.33, random_state=42)
+    del data
+    print("X_TRAIN", X_train.shape, "X_TEST", X_test.shape, "Y_TRAIN", y_train.shape, "Y_TEST", y_test.shape)
+    print("MASK", mask.shape)
 
     model = None
     model = build_and_compile_model()
-    model.summary()
+    print(model.summary())
 
-    # history = model.fit(X_train, y_train, validation_split=0.2, verbose=1, epochs=max_epochs)
+    history = model.fit(X_train, y_train, validation_split=0.2, verbose=1, epochs=max_epochs)
     # model.save('model.h5')
-    # plot_loss(history)
+    plot_loss(history, file_id)
 
 if __name__ == "__main__":
     main()

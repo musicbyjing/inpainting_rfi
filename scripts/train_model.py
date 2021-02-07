@@ -90,6 +90,8 @@ def main():
 
     history = model.fit(X_train, y_train, validation_split=0.2, verbose=1, epochs=max_epochs)
     # model.save('model.h5')
+    ###############################
+    # NEED TO GET MASK INTO MSE
     plot_loss(history, file_id)
 
 if __name__ == "__main__":

@@ -1,0 +1,94 @@
+2021-02-07 10:11:39.651328: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2021-02-07 10:11:39.802830: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2094969999 Hz
+2021-02-07 10:11:39.811138: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x4fb90e0 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2021-02-07 10:11:39.811268: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+X_TRAIN (335, 1500, 818, 3) X_TEST (165, 1500, 818, 3) Y_TRAIN (335, 1500, 818, 2) Y_TEST (165, 1500, 818, 2)
+MASK (1, 1500, 818)
+Model: "sequential"
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+conv2d (Conv2D)              (None, 1500, 818, 96)     34944     
+_________________________________________________________________
+batch_normalization (BatchNo (None, 1500, 818, 96)     384       
+_________________________________________________________________
+max_pooling2d (MaxPooling2D) (None, 750, 409, 96)      0         
+_________________________________________________________________
+up_sampling2d (UpSampling2D) (None, 1500, 818, 96)     0         
+_________________________________________________________________
+conv2d_1 (Conv2D)            (None, 1500, 818, 256)    614656    
+_________________________________________________________________
+batch_normalization_1 (Batch (None, 1500, 818, 256)    1024      
+_________________________________________________________________
+max_pooling2d_1 (MaxPooling2 (None, 750, 409, 256)     0         
+_________________________________________________________________
+up_sampling2d_1 (UpSampling2 (None, 1500, 818, 256)    0         
+_________________________________________________________________
+conv2d_2 (Conv2D)            (None, 1500, 818, 384)    885120    
+_________________________________________________________________
+batch_normalization_2 (Batch (None, 1500, 818, 384)    1536      
+_________________________________________________________________
+conv2d_3 (Conv2D)            (None, 1500, 818, 384)    147840    
+_________________________________________________________________
+batch_normalization_3 (Batch (None, 1500, 818, 384)    1536      
+_________________________________________________________________
+conv2d_4 (Conv2D)            (None, 1500, 818, 256)    98560     
+_________________________________________________________________
+batch_normalization_4 (Batch (None, 1500, 818, 256)    1024      
+_________________________________________________________________
+max_pooling2d_2 (MaxPooling2 (None, 750, 409, 256)     0         
+_________________________________________________________________
+up_sampling2d_2 (UpSampling2 (None, 1500, 818, 256)    0         
+_________________________________________________________________
+dense (Dense)                (None, 1500, 818, 4096)   1052672   
+_________________________________________________________________
+dropout (Dropout)            (None, 1500, 818, 4096)   0         
+_________________________________________________________________
+dense_1 (Dense)              (None, 1500, 818, 4096)   16781312  
+_________________________________________________________________
+dropout_1 (Dropout)          (None, 1500, 818, 4096)   0         
+_________________________________________________________________
+dense_2 (Dense)              (None, 1500, 818, 2)      8194      
+=================================================================
+Total params: 19,628,802
+Trainable params: 19,626,050
+Non-trainable params: 2,752
+_________________________________________________________________
+None
+Traceback (most recent call last):
+  File "scripts/train_model.py", line 96, in <module>
+    main()
+  File "scripts/train_model.py", line 91, in main
+    history = model.fit(X_train, y_train, validation_split=0.2, verbose=1, epochs=max_epochs)
+  File "/home/jingliu6/.local/lib/python3.7/site-packages/tensorflow/python/keras/engine/training.py", line 108, in _method_wrapper
+    return method(self, *args, **kwargs)
+  File "/home/jingliu6/.local/lib/python3.7/site-packages/tensorflow/python/keras/engine/training.py", line 1098, in fit
+    tmp_logs = train_function(iterator)
+  File "/home/jingliu6/.local/lib/python3.7/site-packages/tensorflow/python/eager/def_function.py", line 780, in __call__
+    result = self._call(*args, **kwds)
+  File "/home/jingliu6/.local/lib/python3.7/site-packages/tensorflow/python/eager/def_function.py", line 823, in _call
+    self._initialize(args, kwds, add_initializers_to=initializers)
+  File "/home/jingliu6/.local/lib/python3.7/site-packages/tensorflow/python/eager/def_function.py", line 697, in _initialize
+    *args, **kwds))
+  File "/home/jingliu6/.local/lib/python3.7/site-packages/tensorflow/python/eager/function.py", line 2855, in _get_concrete_function_internal_garbage_collected
+    graph_function, _, _ = self._maybe_define_function(args, kwargs)
+  File "/home/jingliu6/.local/lib/python3.7/site-packages/tensorflow/python/eager/function.py", line 3213, in _maybe_define_function
+    graph_function = self._create_graph_function(args, kwargs)
+  File "/home/jingliu6/.local/lib/python3.7/site-packages/tensorflow/python/eager/function.py", line 3075, in _create_graph_function
+    capture_by_value=self._capture_by_value),
+  File "/home/jingliu6/.local/lib/python3.7/site-packages/tensorflow/python/framework/func_graph.py", line 986, in func_graph_from_py_func
+    func_outputs = python_func(*func_args, **func_kwargs)
+  File "/home/jingliu6/.local/lib/python3.7/site-packages/tensorflow/python/eager/def_function.py", line 600, in wrapped_fn
+    return weak_wrapped_fn().__wrapped__(*args, **kwds)
+  File "/home/jingliu6/.local/lib/python3.7/site-packages/tensorflow/python/framework/func_graph.py", line 973, in wrapper
+    raise e.ag_error_metadata.to_exception(e)
+NameError: in user code:
+
+    /home/jingliu6/.local/lib/python3.7/site-packages/tensorflow/python/keras/engine/training.py:806 train_function  *
+        return step_function(self, iterator)
+    scripts/train_model.py:24 masked_MSE  *
+        yt = yt[mask == True]
+
+    NameError: name 'mask' is not defined
+

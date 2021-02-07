@@ -1,144 +1,37 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+import argparse
 
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
-# from google.colab import files
-
-# from google.colab import drive
-# drive.mount('/content/drive/')
-
-
-# ### Load data
-
-# In[3]:
-
+from tensorflow.keras import backend as K
 
 def load_dataset(id):
-    # folder = '/content/drive/My Drive/_MCGILL/cosmicdawn' # nin
-#     folder = '/content/drive/My Drive/phys489' # mbj
-    folder = './data'
-    data = np.load(f"{folder}/dataset{id}.npy")
-    labels = np.load(f"{folder}/labels{id}.npy")
-    mask = np.load(f"{folder}/mask{id}.npy")
-    # print(data.shape, labels.shape)
+    folder = "data"
+    data = np.load(os.path.join(folder, f"{id}_dataset.npy"))
+    labels = np.load(os.path.join(folder, f"{id}_labels.npy"))
+    mask = np.load(os.path.join(folder,f"{id}_mask.npy"))
+    # print("DATA SHAPE", data.shape, "LABELS SHAPE", labels.shape)
     return data, labels, mask
 
-
-# In[4]:
-
-
-# print(data)
-
-
-# In[5]:
-
-
-data, labels, mask = load_dataset(20)
-
-
-# ### Convert to proper dataset shape (if necessary)
-
-# In[ ]:
-
-
-# real = data.real[:,:]
-# print(real.shape)
-# imag = data.imag[:,:,:]
-# data_new = np.zeros((data.shape[0], data.shape[1], data.shape[2], 3))
-# data_new[:, :, :, 0] = real
-# data_new[:, :, :, 1] = imag
-# data_new[:, :, :, 2] = mask
-# data = data_new
-
-# real = labels.real
-# imag = labels.imag
-# labels_new = np.zeros((labels.shape[0], labels.shape[1], labels.shape[2], 2))
-# labels_new[:, :, :, 0] = real
-# labels_new[:, :, :, 1] = imag
-# labels = labels_new
-
-# print(data.shape)
-# print(labels.shape)
-
-
-# ### Train-test split
-
-# In[6]:
-
-
-X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.33, random_state=42)
-del data
-
-
-# In[7]:
-
-
-# X_train = X_train[:,:,:,:2]
-# X_test = X_test[:,:,:,:2]
-
-
-# In[8]:
-
-
-print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
-print(mask.shape)
-
-
-# # ML model
-
-# In[ ]:
-
-
-import keras.backend as K
-'''
-MSE, only over masked areas
-'''
 def masked_MSE(y_true, y_pred):
-  for yt in y_true: # for each example in the batch
-    yt = yt[mask == True]
-  for yp in y_pred:
-    yp = yp[mask == True]
-  loss_val = K.mean(K.square(y_pred - y_true))
-  return loss_val
-
-
-# In[ ]:
-
-
-'''
-Original deep model
-'''
-#   model = keras.Sequential([
-#       layers.Conv2D(12, kernel_size=3, activation='relu', padding='same', input_shape=(1500,818,3), kernel_initializer=keras.initializers.GlorotNormal()),
-#       layers.MaxPooling2D((2,2)),
-#       layers.UpSampling2D((2,2)),
-#       layers.Conv2D(12, kernel_size=5, activation='relu', padding='same', kernel_initializer=keras.initializers.GlorotNormal()),
-#       layers.MaxPooling2D((2,2)),
-#       layers.UpSampling2D((2,2)),
-#       layers.Conv2D(12, kernel_size=5, activation='relu', padding='same', kernel_initializer=keras.initializers.GlorotNormal()),
-#       layers.MaxPooling2D((2,2)),
-#       layers.UpSampling2D((2,2)),
-#       layers.Conv2D(12, kernel_size=5, activation='relu', padding='same', kernel_initializer=keras.initializers.GlorotNormal()),
-#       layers.MaxPooling2D((2,2)),
-#       layers.UpSampling2D((2,2)),
-#       layers.Dense(12, activation='relu'),
-#       layers.Dense(2)
-#   ])
-
-
-# In[ ]:
-
+    '''
+    MSE, only over masked areas
+    '''
+    for yt in y_true: # for each example in the batch
+        yt = yt[mask == True]
+    for yp in y_pred:
+        yp = yp[mask == True]
+    loss_val = K.mean(K.square(y_pred - y_true))
+    return loss_val
 
 def build_and_compile_model():
+    '''
+    based on AlexNet from 'https://towardsdatascience.com/implementing-alexnet-cnn-architecture-using-tensorflow-2-0-and-keras-2113e090ad98'
+    '''
     model = keras.models.Sequential([
         keras.layers.Conv2D(filters=96, kernel_size=(11,11), strides=(4,4), activation='relu', input_shape=(227,227,3)),
         keras.layers.BatchNormalization(),
@@ -160,52 +53,47 @@ def build_and_compile_model():
         keras.layers.Dense(2)
     ])
     
-  
-
-  model.compile(loss=masked_MSE, optimizer=tf.keras.optimizers.Adam(0.001), metrics=[masked_MSE])
-  return model
+    model.compile(loss=masked_MSE, optimizer=tf.keras.optimizers.Adam(0.001), metrics=[masked_MSE])
+    return model
 
 
-# In[ ]:
-
-
-model = None
-model = build_and_compile_model()
-model.summary()
-
-
-# In[92]:
-
-
-history = model.fit(
-    X_train, y_train,
-    validation_split=0.2,
-    verbose=1, epochs=1000)
-
-
-# In[ ]:
-
-
-# del history
-
-
-# In[93]:
-
-
-model.save('model.h5')
-
-
-# In[94]:
-
-
-def plot_loss(history):
+def plot_loss(history, id):
   plt.plot(history.history['loss'], label='loss')
   plt.plot(history.history['val_loss'], label='val_loss')
-  plt.ylim([0, 2500])
   plt.xlabel('Epoch')
   plt.ylabel('Error')
   plt.legend()
   plt.grid(True)
+  plt.savefig(f"{file_id}.png")
+
+
+def main():
+    # cmd line arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--max_epochs", type=int, help="Maximum number of epochs")
+    parser.add_argument("--id", type=str, help="ID of data to use for training")
+    args = parser.parse_args()
+
+    max_epochs = args.max_epochs
+    file_id = args.id
+
+    # data, labels, mask = load_dataset(file_id)
+    # X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.33, random_state=42)
+    # del data
+    # print("X_TRAIN", X_train.shape, "X_TEST", X_test.shape, "Y_TRAIN", y_train.shape, "Y_TEST", y_test.shape)
+    # print("MASK", mask.shape)
+
+    model = None
+    model = build_and_compile_model()
+    model.summary()
+
+    history = model.fit(X_train, y_train, validation_split=0.2, verbose=1, epochs=max_epochs)
+    model.save('model.h5')
+
+if __name__ == "__main__":
+    main()
+
+
 
 plot_loss(history)
 

@@ -6,14 +6,13 @@ import argparse
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import layers
 from tensorflow.keras import backend as K
 
-def load_dataset(id):
+def load_dataset(file_id):
     folder = "data"
-    data = np.load(os.path.join(folder, f"{id}_dataset.npy"))
-    labels = np.load(os.path.join(folder, f"{id}_labels.npy"))
-    mask = np.load(os.path.join(folder,f"{id}_mask.npy"))
+    data = np.load(os.path.join(folder, f"{file_id}_dataset.npy"))
+    labels = np.load(os.path.join(folder, f"{file_id}_labels.npy"))
+    mask = np.load(os.path.join(folder,f"{file_id}_mask.npy"))
     # print("DATA SHAPE", data.shape, "LABELS SHAPE", labels.shape)
     return data, labels, mask
 
@@ -57,7 +56,7 @@ def build_and_compile_model():
     return model
 
 
-def plot_loss(history, id):
+def plot_loss(history, file_id):
   plt.plot(history.history['loss'], label='loss')
   plt.plot(history.history['val_loss'], label='val_loss')
   plt.xlabel('Epoch')
@@ -87,105 +86,13 @@ def main():
     model = build_and_compile_model()
     model.summary()
 
-    history = model.fit(X_train, y_train, validation_split=0.2, verbose=1, epochs=max_epochs)
-    model.save('model.h5')
+    # history = model.fit(X_train, y_train, validation_split=0.2, verbose=1, epochs=max_epochs)
+    # model.save('model.h5')
+    # plot_loss(history)
 
 if __name__ == "__main__":
     main()
 
-
-
-plot_loss(history)
-
-
-# In[95]:
-
-
-files.download('model.h5')
-
-
-# In[96]:
-
-
-while True:pass
-
-
-# ## Make predictions
-
-# In[ ]:
-
-
-model.layers[0].get_weights()
-
-
-# In[ ]:
-
-
-# model = keras.models.load_model('model.h5', custom_objects={'masked_MSE': masked_MSE})
-
-
-# In[97]:
-
-
-def make_predictions(input):
-  preds = model.predict(input)
-  # print(preds)
-  return preds
-
-def download_predictions(preds, i):
-  np.save("pred.npy", preds[i])
-  np.save("og.npy", X_train[i])
-  np.save("true.npy", y_train[i])
-  files.download('pred.npy')
-  files.download('og.npy')
-  files.download('true.npy')
-
-  # Apply mask to predictions
-  # for j, pred in enumerate(preds):
-    # pred[mask == False] = X_train[j][mask == False][:,:2] # (1-mask)*og + mask*pred
-  
-  # np.save("pred_masked.npy", preds[i])
-  # files.download('pred_masked.npy')
-
-
-# In[ ]:
-
-
-# eye = np.dstack([np.zeros((1500, 818))]*2)
-# eye = np.dstack([np.eye(1500, 818)]*2)
-# print(eye.shape)
-# pred = model.predict(np.array([eye,]))
-np.save("pred.npy", X_train[6])
-files.download('pred.npy')
-
-
-# In[ ]:
-
-
-pred.shape
-
-
-# In[98]:
-
-
-preds = make_predictions(X_train)
-# print(X_train[0].shape)
-# print(mask.shape)
-
-
-# In[99]:
-
-
-download_predictions(preds, 6)
-
-
-# In[ ]:
-
-
-plt.imshow(preds[0][:,:,0])
-
-
-# In[ ]:
 
 
 

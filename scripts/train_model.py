@@ -8,6 +8,8 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import backend as K
 
+mask = ""
+
 def load_dataset(file_id):
     folder = "data"
     data = np.load(os.path.join(folder, f"{file_id}_dataset.npy"))
@@ -73,13 +75,18 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--max_epochs", type=int, help="Maximum number of epochs")
     parser.add_argument("--id", type=str, help="ID of data to use for training")
+    parser.add_argument("--no-save-test", default=True, action="store_false", help="Run without saving generated Xtest and ytest sets")
     args = parser.parse_args()
 
     max_epochs = args.max_epochs
     file_id = args.id
+    save_test = args.no_save_test
 
     data, labels, mask = load_dataset(file_id)
     X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.33, random_state=42)
+    if save_test:
+        np.save(os.path.join("data", f"{file_id}_Xtest.npy"), X_test)
+        np.save(os.path.join("data", f"{file_id}_ytest.npy"), y_test)
     del data
     print("X_TRAIN", X_train.shape, "X_TEST", X_test.shape, "Y_TRAIN", y_train.shape, "Y_TEST", y_test.shape)
     print("MASK", mask.shape)
@@ -96,8 +103,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-

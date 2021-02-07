@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import backend as K
+from keras.callbacks import ModelCheckpoint
 
 mask = ""
 
@@ -30,32 +31,49 @@ def masked_MSE(y_true, y_pred):
     return loss_val
 
 def build_and_compile_model():
+    model = keras.Sequential([
+        keras.layers.Conv2D(48, kernel_size=3, activation='relu', padding='same', input_shape=(1500,818,3), kernel_initializer=keras.initializers.GlorotNormal()),
+        keras.layers.MaxPooling2D((2,2)),
+        keras.layers.UpSampling2D((2,2)),
+        keras.layers.Conv2D(48, kernel_size=5, activation='relu', padding='same', kernel_initializer=keras.initializers.GlorotNormal()),
+        keras.layers.MaxPooling2D((2,2)),
+        keras.layers.UpSampling2D((2,2)),
+        keras.layers.Conv2D(48, kernel_size=5, activation='relu', padding='same', kernel_initializer=keras.initializers.GlorotNormal()),
+        keras.layers.MaxPooling2D((2,2)),
+        keras.layers.UpSampling2D((2,2)),
+        keras.layers.Conv2D(48, kernel_size=5, activation='relu', padding='same', kernel_initializer=keras.initializers.GlorotNormal()),
+        keras.layers.MaxPooling2D((2,2)),
+        keras.layers.UpSampling2D((2,2)),
+        keras.layers.Dense(256, activation='relu'),
+        keras.layers.Dense(2)
+    ])
+    
     '''
     based on AlexNet from 'https://towardsdatascience.com/implementing-alexnet-cnn-architecture-using-tensorflow-2-0-and-keras-2113e090ad98'
     '''
-    model = keras.models.Sequential([
-        keras.layers.Conv2D(filters=96, kernel_size=(11,11), padding='same', activation='relu', input_shape=(1500,818,3)),
-        keras.layers.BatchNormalization(),
-        keras.layers.MaxPool2D(pool_size=(2,2)),
-        keras.layers.UpSampling2D((2,2)),
-        keras.layers.Conv2D(filters=256, kernel_size=(5,5), activation='relu', padding="same"),
-        keras.layers.BatchNormalization(),
-        keras.layers.MaxPool2D(pool_size=(2,2)),
-        keras.layers.UpSampling2D((2,2)),
-        keras.layers.Conv2D(filters=384, kernel_size=(3,3), strides=(1,1), activation='relu', padding="same"),
-        keras.layers.BatchNormalization(),
-        keras.layers.Conv2D(filters=384, kernel_size=(1,1), strides=(1,1), activation='relu', padding="same"),
-        keras.layers.BatchNormalization(),
-        keras.layers.Conv2D(filters=256, kernel_size=(1,1), strides=(1,1), activation='relu', padding="same"),
-        keras.layers.BatchNormalization(),
-        keras.layers.MaxPool2D(pool_size=(2,2)),
-        keras.layers.UpSampling2D((2,2)),
-        keras.layers.Dense(4096, activation='relu'),
-        keras.layers.Dropout(0.5),
-        keras.layers.Dense(4096, activation='relu'),
-        keras.layers.Dropout(0.5),
-        keras.layers.Dense(2)
-    ])
+    # model = keras.Sequential([
+    #     keras.layers.Conv2D(filters=96, kernel_size=(11,11), padding='same', activation='relu', input_shape=(1500,818,3)),
+    #     keras.layers.BatchNormalization(),
+    #     keras.layers.MaxPool2D(pool_size=(2,2)),
+    #     keras.layers.UpSampling2D((2,2)),
+    #     keras.layers.Conv2D(filters=256, kernel_size=(5,5), activation='relu', padding="same"),
+    #     keras.layers.BatchNormalization(),
+    #     keras.layers.MaxPool2D(pool_size=(2,2)),
+    #     keras.layers.UpSampling2D((2,2)),
+    #     keras.layers.Conv2D(filters=384, kernel_size=(3,3), strides=(1,1), activation='relu', padding="same"),
+    #     keras.layers.BatchNormalization(),
+    #     keras.layers.Conv2D(filters=384, kernel_size=(1,1), strides=(1,1), activation='relu', padding="same"),
+    #     keras.layers.BatchNormalization(),
+    #     keras.layers.Conv2D(filters=256, kernel_size=(1,1), strides=(1,1), activation='relu', padding="same"),
+    #     keras.layers.BatchNormalization(),
+    #     keras.layers.MaxPool2D(pool_size=(2,2)),
+    #     keras.layers.UpSampling2D((2,2)),
+    #     keras.layers.Dense(4096, activation='relu'),
+    #     keras.layers.Dropout(0.5),
+    #     keras.layers.Dense(4096, activation='relu'),
+    #     keras.layers.Dropout(0.5),
+    #     keras.layers.Dense(2)
+    # ])
     
     model.compile(loss=masked_MSE, optimizer=tf.keras.optimizers.Adam(0.001), metrics=[masked_MSE])
     return model
@@ -81,9 +99,14 @@ def main():
     max_epochs = args.max_epochs
     file_id = args.id
     save_test = args.no_save_test
+    print(save_test)
 
+    # Load data
+    global mask
     data, labels, mask = load_dataset(file_id)
-    X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.33, random_state=42)
+    ############# CHANGE BELOW LINE WHEN USING MORE THAN ONE MASK #############
+    mask = mask[0]
+    X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.2, random_state=42)
     if save_test:
         np.save(os.path.join("data", f"{file_id}_Xtest.npy"), X_test)
         np.save(os.path.join("data", f"{file_id}_ytest.npy"), y_test)
@@ -91,14 +114,19 @@ def main():
     print("X_TRAIN", X_train.shape, "X_TEST", X_test.shape, "Y_TRAIN", y_train.shape, "Y_TEST", y_test.shape)
     print("MASK", mask.shape)
 
+    # Get model
     model = None
     model = build_and_compile_model()
     print(model.summary())
+    
+    # Save checkpoints
+    filepath=f"weights-improvement-{epoch:02d}-{masked_MSE:.2f}.hdf5"
+    checkpoint = ModelCheckpoint(filepath, monitor='masked_MSE', verbose=1, save_best_only=True, mode='max')
+    callbacks_list = [checkpoint]
 
-    history = model.fit(X_train, y_train, validation_split=0.2, verbose=1, epochs=max_epochs)
-    # model.save('model.h5')
-    ###############################
-    # NEED TO GET MASK INTO MSE
+    # Fit model
+    history = model.fit(X_train, y_train, validation_split=0.2, verbose=1, batch_size=8, epochs=max_epochs)
+    model.save(f"{file_id}_model.h5")
     plot_loss(history, file_id)
 
 if __name__ == "__main__":

@@ -118,7 +118,7 @@ def generate_vis_plots(n, lsts, fqs, bl_len_ns):
 ##### Generate datasets #####
 ##############################
 
-def create_dataset(vis_list, mask_list):
+def create_dataset(vis_list, mask_list, save):
     if vis_list.shape[-1] < 2:
         raise Exception("Need to separate visibilities into real and complex channels!")
 
@@ -144,13 +144,13 @@ def create_dataset(vis_list, mask_list):
         labels = vis_list 
     
     # Save files
-    prefix = f"{int(time.time())}_{len(vis_list)}_examples_{len(mask_list)}_masks"
-
-    np.save(os.path.join("data", f"{prefix}_dataset.npy"), data)
-    np.save(os.path.join("data", f"{prefix}_labels.npy"), labels)
-    np.save(os.path.join("data", f"{prefix}_masks.npy"), mask_list)
-    
-    print("Dataset saved.")
+    if save:
+        prefix = f"{int(time.time())}_{len(vis_list)}_examples_{len(mask_list)}_masks"
+        np.save(os.path.join("data", f"{prefix}_dataset.npy"), data)
+        np.save(os.path.join("data", f"{prefix}_labels.npy"), labels)
+        np.save(os.path.join("data", f"{prefix}_masks.npy"), mask_list)
+        
+        print("Dataset saved.")
     print(f"Data shape: {data.shape}. Labels shape: {labels.shape}")
 
 
@@ -163,10 +163,12 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--n_masks", type=int, help="Number of generated masks")
     parser.add_argument("--n_examples", type=int, help="Number of examples to generate")
+    parser.add_argument("--no-save", default=True, action="store_false", help="Use this flag to run tests without saving generated files to disk")
     args = parser.parse_args()
 
     n_masks = args.n_masks
     n_examples = args.n_examples
+    save = args.no_save
 
     # generate masks
     saurabhs_mask, num_jd, num_freq_channels = load_real_mask(os.path.join(os.path.dirname(__file__), "..", "data", "mask_HERA.hdf5"))
@@ -190,11 +192,8 @@ def main():
     vis_list = generate_vis_plots(n_examples, lsts, fqs, bl_len_ns)
     mask_list = generate_masks(n_masks, num_jd, num_reduced_channels, rfi_widths, rfi_heights)
 
-    print(type(vis_list))
-    print(type(mask_list))
-
     # create dataset
-    create_dataset(vis_list, mask_list)
+    create_dataset(vis_list, mask_list, save)
 
 
 if __name__ == "__main__":

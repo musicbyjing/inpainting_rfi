@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import argparse
+import sys
 
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
@@ -31,49 +32,49 @@ def masked_MSE(y_true, y_pred):
     return loss_val
 
 def build_and_compile_model():
-    model = keras.Sequential([
-        keras.layers.Conv2D(24, kernel_size=3, activation='relu', padding='same', input_shape=(1500,818,3), kernel_initializer=keras.initializers.GlorotNormal()),
-        keras.layers.MaxPooling2D((2,2)),
-        keras.layers.UpSampling2D((2,2)),
-        keras.layers.Conv2D(24, kernel_size=5, activation='relu', padding='same', kernel_initializer=keras.initializers.GlorotNormal()),
-        keras.layers.MaxPooling2D((2,2)),
-        keras.layers.UpSampling2D((2,2)),
-        keras.layers.Conv2D(24, kernel_size=5, activation='relu', padding='same', kernel_initializer=keras.initializers.GlorotNormal()),
-        keras.layers.MaxPooling2D((2,2)),
-        keras.layers.UpSampling2D((2,2)),
-        keras.layers.Conv2D(24, kernel_size=5, activation='relu', padding='same', kernel_initializer=keras.initializers.GlorotNormal()),
-        keras.layers.MaxPooling2D((2,2)),
-        keras.layers.UpSampling2D((2,2)),
-        keras.layers.Dense(128, activation='relu'),
-        keras.layers.Dense(2)
-    ])
+    # model = keras.Sequential([
+    #     keras.layers.Conv2D(24, kernel_size=3, activation='relu', padding='same', input_shape=(1500,818,3), kernel_initializer=keras.initializers.GlorotNormal()),
+    #     keras.layers.MaxPooling2D((2,2)),
+    #     keras.layers.UpSampling2D((2,2)),
+    #     keras.layers.Conv2D(24, kernel_size=5, activation='relu', padding='same', kernel_initializer=keras.initializers.GlorotNormal()),
+    #     keras.layers.MaxPooling2D((2,2)),
+    #     keras.layers.UpSampling2D((2,2)),
+    #     keras.layers.Conv2D(24, kernel_size=5, activation='relu', padding='same', kernel_initializer=keras.initializers.GlorotNormal()),
+    #     keras.layers.MaxPooling2D((2,2)),
+    #     keras.layers.UpSampling2D((2,2)),
+    #     keras.layers.Conv2D(24, kernel_size=5, activation='relu', padding='same', kernel_initializer=keras.initializers.GlorotNormal()),
+    #     keras.layers.MaxPooling2D((2,2)),
+    #     keras.layers.UpSampling2D((2,2)),
+    #     keras.layers.Dense(128, activation='relu'),
+    #     keras.layers.Dense(2)
+    # ])
     
     '''
     based on AlexNet from 'https://towardsdatascience.com/implementing-alexnet-cnn-architecture-using-tensorflow-2-0-and-keras-2113e090ad98'
     '''
-    # model = keras.Sequential([
-    #     keras.layers.Conv2D(filters=96, kernel_size=(11,11), padding='same', activation='relu', input_shape=(1500,818,3)),
-    #     keras.layers.BatchNormalization(),
-    #     keras.layers.MaxPool2D(pool_size=(2,2)),
-    #     keras.layers.UpSampling2D((2,2)),
-    #     keras.layers.Conv2D(filters=256, kernel_size=(5,5), activation='relu', padding="same"),
-    #     keras.layers.BatchNormalization(),
-    #     keras.layers.MaxPool2D(pool_size=(2,2)),
-    #     keras.layers.UpSampling2D((2,2)),
-    #     keras.layers.Conv2D(filters=384, kernel_size=(3,3), strides=(1,1), activation='relu', padding="same"),
-    #     keras.layers.BatchNormalization(),
-    #     keras.layers.Conv2D(filters=384, kernel_size=(1,1), strides=(1,1), activation='relu', padding="same"),
-    #     keras.layers.BatchNormalization(),
-    #     keras.layers.Conv2D(filters=256, kernel_size=(1,1), strides=(1,1), activation='relu', padding="same"),
-    #     keras.layers.BatchNormalization(),
-    #     keras.layers.MaxPool2D(pool_size=(2,2)),
-    #     keras.layers.UpSampling2D((2,2)),
-    #     keras.layers.Dense(4096, activation='relu'),
-    #     keras.layers.Dropout(0.5),
-    #     keras.layers.Dense(4096, activation='relu'),
-    #     keras.layers.Dropout(0.5),
-    #     keras.layers.Dense(2)
-    # ])
+    model = keras.Sequential([
+        keras.layers.Conv2D(filters=96, kernel_size=(11,11), padding='same', activation='relu', input_shape=(1500,818,3)),
+        keras.layers.BatchNormalization(),
+        keras.layers.MaxPool2D(pool_size=(2,2)),
+        # keras.layers.UpSampling2D((2,2)),
+        keras.layers.Conv2D(filters=256, kernel_size=(5,5), activation='relu', padding="same"),
+        keras.layers.BatchNormalization(),
+        keras.layers.MaxPool2D(pool_size=(2,2)),
+        # keras.layers.UpSampling2D((2,2)),
+        keras.layers.Conv2D(filters=384, kernel_size=(3,3), strides=(1,1), activation='relu', padding="same"),
+        keras.layers.BatchNormalization(),
+        keras.layers.Conv2D(filters=384, kernel_size=(1,1), strides=(1,1), activation='relu', padding="same"),
+        keras.layers.BatchNormalization(),
+        keras.layers.Conv2D(filters=256, kernel_size=(1,1), strides=(1,1), activation='relu', padding="same"),
+        keras.layers.BatchNormalization(),
+        keras.layers.MaxPool2D(pool_size=(2,2)),
+        keras.layers.UpSampling2D((8,8)),
+        keras.layers.Dense(4096, activation='relu'),
+        keras.layers.Dropout(0.5),
+        keras.layers.Dense(4096, activation='relu'),
+        keras.layers.Dropout(0.5),
+        keras.layers.Dense(2)
+    ])
     
     model.compile(loss=masked_MSE, optimizer=tf.keras.optimizers.Adam(0.001), metrics=[masked_MSE])
     return model
@@ -98,12 +99,21 @@ def main():
     parser.add_argument("--max_epochs", type=int, help="Maximum number of epochs")
     parser.add_argument("--id", type=str, help="ID of data to use for training")
     parser.add_argument("--no-save-test", default=True, action="store_false", help="Run without saving generated Xtest and ytest sets")
+    parser.add_argument("--compile_only", default=False, action="store_true", help="Quit after compiling and printing model")
     args = parser.parse_args()
 
     max_epochs = args.max_epochs
     file_id = args.id
     save_test = args.no_save_test
-    print(save_test)
+    compile_only = args.compile_only
+    # print(save_test)
+
+    # Get model
+    model = None
+    model = build_and_compile_model()
+    print(model.summary())
+    if compile_only:
+        sys.exit(0)
 
     # Load data
     global mask
@@ -117,11 +127,6 @@ def main():
     del data
     print("X_TRAIN", X_train.shape, "X_TEST", X_test.shape, "Y_TRAIN", y_train.shape, "Y_TEST", y_test.shape)
     print("MASK", mask.shape)
-
-    # Get model
-    model = None
-    model = build_and_compile_model()
-    print(model.summary())
     
     # Save checkpoints
     filepath=os.path.join("models", f"GPU_weights.best.hdf5")

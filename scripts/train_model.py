@@ -5,7 +5,6 @@ import argparse
 
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
-print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
 from tensorflow import keras
 from tensorflow.keras import backend as K
 from tensorflow.keras.callbacks import ModelCheckpoint
@@ -90,6 +89,10 @@ def plot_loss(history, file_id):
 
 
 def main():
+    # tf stuff
+    sess = tf.compat.v1.Session(config=tf.compat.v1.ConfigProto(log_device_placement=True))
+    print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
+
     # cmd line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("--max_epochs", type=int, help="Maximum number of epochs")
@@ -121,7 +124,7 @@ def main():
     print(model.summary())
     
     # Save checkpoints
-    filepath=os.path.join("models", "weights.best.hdf5")
+    filepath=os.path.join("models", f"GPU_weights.best.hdf5")
     checkpoint = ModelCheckpoint(filepath, monitor='val_masked_MSE', verbose=1, save_best_only=True, mode='min')
     callbacks_list = [checkpoint]
 

@@ -7,5 +7,7 @@
 #SBATCH --mail-type=ALL
 #SBATCH --output=%N-%j.out  # %N for node name, %j for jobID
 
+source ~/HERA_ENV/bin/activate
+module load scipy-stack
 module load cuda cudnn
 python scripts/tensorflow-test.py

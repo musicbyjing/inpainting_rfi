@@ -121,12 +121,12 @@ def main():
     print(model.summary())
     
     # Save checkpoints
-    filepath="weights-improvement-{epoch:02d}-{masked_MSE:.2f}.hdf5"
+    filepath="weights.best.hdf5"
     checkpoint = ModelCheckpoint(filepath, monitor='masked_MSE', verbose=1, save_best_only=True, mode='max')
     callbacks_list = [checkpoint]
 
     # Fit model
-    history = model.fit(X_train, y_train, validation_split=0.2, verbose=1, batch_size=8, epochs=max_epochs)
+    history = model.fit(X_train, y_train, validation_split=0.2, verbose=1, batch_size=8, epochs=max_epochs, callbacks=callbacks_list)
     model.save(f"{file_id}_model.h5")
     plot_loss(history, file_id)
 

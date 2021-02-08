@@ -5,9 +5,10 @@ import argparse
 
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
+print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
 from tensorflow import keras
 from tensorflow.keras import backend as K
-from keras.callbacks import ModelCheckpoint
+from tensorflow.keras.callbacks import ModelCheckpoint
 
 mask = ""
 
@@ -32,19 +33,19 @@ def masked_MSE(y_true, y_pred):
 
 def build_and_compile_model():
     model = keras.Sequential([
-        keras.layers.Conv2D(48, kernel_size=3, activation='relu', padding='same', input_shape=(1500,818,3), kernel_initializer=keras.initializers.GlorotNormal()),
+        keras.layers.Conv2D(24, kernel_size=3, activation='relu', padding='same', input_shape=(1500,818,3), kernel_initializer=keras.initializers.GlorotNormal()),
         keras.layers.MaxPooling2D((2,2)),
         keras.layers.UpSampling2D((2,2)),
-        keras.layers.Conv2D(48, kernel_size=5, activation='relu', padding='same', kernel_initializer=keras.initializers.GlorotNormal()),
+        keras.layers.Conv2D(24, kernel_size=5, activation='relu', padding='same', kernel_initializer=keras.initializers.GlorotNormal()),
         keras.layers.MaxPooling2D((2,2)),
         keras.layers.UpSampling2D((2,2)),
-        keras.layers.Conv2D(48, kernel_size=5, activation='relu', padding='same', kernel_initializer=keras.initializers.GlorotNormal()),
+        keras.layers.Conv2D(24, kernel_size=5, activation='relu', padding='same', kernel_initializer=keras.initializers.GlorotNormal()),
         keras.layers.MaxPooling2D((2,2)),
         keras.layers.UpSampling2D((2,2)),
-        keras.layers.Conv2D(48, kernel_size=5, activation='relu', padding='same', kernel_initializer=keras.initializers.GlorotNormal()),
+        keras.layers.Conv2D(24, kernel_size=5, activation='relu', padding='same', kernel_initializer=keras.initializers.GlorotNormal()),
         keras.layers.MaxPooling2D((2,2)),
         keras.layers.UpSampling2D((2,2)),
-        keras.layers.Dense(256, activation='relu'),
+        keras.layers.Dense(128, activation='relu'),
         keras.layers.Dense(2)
     ])
     
@@ -120,7 +121,7 @@ def main():
     print(model.summary())
     
     # Save checkpoints
-    filepath=f"weights-improvement-{epoch:02d}-{masked_MSE:.2f}.hdf5"
+    filepath="weights-improvement-{epoch:02d}-{masked_MSE:.2f}.hdf5"
     checkpoint = ModelCheckpoint(filepath, monitor='masked_MSE', verbose=1, save_best_only=True, mode='max')
     callbacks_list = [checkpoint]
 

@@ -121,14 +121,15 @@ def main():
     print(model.summary())
     
     # Save checkpoints
-    filepath="weights.best.hdf5"
-    checkpoint = ModelCheckpoint(filepath, monitor='masked_MSE', verbose=1, save_best_only=True, mode='max')
+    filepath=os.path.join("models", "weights.best.hdf5")
+    checkpoint = ModelCheckpoint(filepath, monitor='val_masked_MSE', verbose=1, save_best_only=True, mode='min')
     callbacks_list = [checkpoint]
 
     # Fit model
     history = model.fit(X_train, y_train, validation_split=0.2, verbose=1, batch_size=8, epochs=max_epochs, callbacks=callbacks_list)
-    model.save(f"{file_id}_model.h5")
+    model.save(os.path.join("models", f"{file_id}_model.h5"))
     plot_loss(history, file_id)
+    print("train_model.py has completed.")
 
 if __name__ == "__main__":
     main()

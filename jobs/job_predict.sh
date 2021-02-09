@@ -11,4 +11,4 @@
 source ~/HERA_ENV/bin/activate
 module load scipy-stack
 module load cuda cudnn
-python3 scripts/predict.py --id 1612458166_500_examples_1_masks --model-name weights.best.hdf5
+python3 scripts/predict.py --id 1612458166_500_examples_1_masks --model-name 1612458166_500_examples_1_masks_model.h5

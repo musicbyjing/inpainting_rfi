@@ -56,11 +56,11 @@ def build_and_compile_model():
         keras.layers.Conv2D(filters=96, kernel_size=(11,11), padding='same', activation='relu', input_shape=(1500,818,3)),
         keras.layers.BatchNormalization(),
         keras.layers.MaxPool2D(pool_size=(2,2)),
-        # keras.layers.UpSampling2D((2,2)),
+        keras.layers.UpSampling2D((2,2)),
         keras.layers.Conv2D(filters=256, kernel_size=(5,5), activation='relu', padding="same"),
         keras.layers.BatchNormalization(),
         keras.layers.MaxPool2D(pool_size=(2,2)),
-        # keras.layers.UpSampling2D((2,2)),
+        keras.layers.UpSampling2D((2,2)),
         keras.layers.Conv2D(filters=384, kernel_size=(3,3), strides=(1,1), activation='relu', padding="same"),
         keras.layers.BatchNormalization(),
         keras.layers.Conv2D(filters=384, kernel_size=(1,1), strides=(1,1), activation='relu', padding="same"),
@@ -68,10 +68,10 @@ def build_and_compile_model():
         keras.layers.Conv2D(filters=256, kernel_size=(1,1), strides=(1,1), activation='relu', padding="same"),
         keras.layers.BatchNormalization(),
         keras.layers.MaxPool2D(pool_size=(2,2)),
-        keras.layers.UpSampling2D((8,8)),
-        keras.layers.Dense(4096, activation='relu'),
+        keras.layers.UpSampling2D((2,2)),
+        keras.layers.Dense(1024, activation='relu'),
         keras.layers.Dropout(0.5),
-        keras.layers.Dense(4096, activation='relu'),
+        keras.layers.Dense(1024, activation='relu'),
         keras.layers.Dropout(0.5),
         keras.layers.Dense(2)
     ])
@@ -129,7 +129,7 @@ def main():
     print("MASK", mask.shape)
     
     # Save checkpoints
-    filepath=os.path.join("models", f"GPU_weights.best.hdf5")
+    filepath=os.path.join("models", f"GPU_Alex_weights.best.hdf5")
     checkpoint = ModelCheckpoint(filepath, monitor='val_masked_MSE', verbose=1, save_best_only=True, mode='min')
     callbacks_list = [checkpoint]
 

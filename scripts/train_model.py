@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import os
 import argparse
 import sys
@@ -10,15 +9,9 @@ from tensorflow import keras
 from tensorflow.keras import backend as K
 from tensorflow.keras.callbacks import ModelCheckpoint
 
-mask = ""
+from utils import load_dataset, plot_loss
 
-def load_dataset(file_id):
-    folder = "data"
-    data = np.load(os.path.join(folder, f"{file_id}_dataset.npy"))
-    labels = np.load(os.path.join(folder, f"{file_id}_labels.npy"))
-    mask = np.load(os.path.join(folder,f"{file_id}_masks.npy"))
-    # print("DATA SHAPE", data.shape, "LABELS SHAPE", labels.shape)
-    return data, labels, mask
+mask = ""
 
 def masked_MSE(y_true, y_pred):
     '''
@@ -81,15 +74,6 @@ def build_and_compile_AlexNet():
     model.compile(loss=masked_MSE, optimizer=tf.keras.optimizers.Adam(0.001), metrics=[masked_MSE])
     return model
 
-def plot_loss(history, file_id):
-  plt.plot(history.history['loss'], label='loss')
-  plt.plot(history.history['val_loss'], label='val_loss')
-  plt.xlabel('Epoch')
-  plt.ylabel('Error')
-  plt.legend()
-  plt.grid(True)
-  plt.savefig(f"{file_id}.png")
-
 
 def main():
     # tf stuff
@@ -116,7 +100,7 @@ def main():
     model = None
     if model_name == "colab":
         model = build_and_compile_model()
-    else if model_name == "alex"
+    elif model_name == "alex"
         model = build_and_compile_AlexNet()
     else
         raise Exception("Unsupported model. Please try again")
@@ -139,7 +123,7 @@ def main():
     print("MASK", mask.shape)
     
     # Save checkpoints
-    filepath=os.path.join("models", f"GPU_Alex_weights.best.hdf5")
+    filepath=os.path.join("models", f"{model_name}_weights.best.hdf5")
     checkpoint = ModelCheckpoint(filepath, monitor='val_masked_MSE', verbose=1, save_best_only=True, mode='min')
     callbacks_list = [checkpoint]
 

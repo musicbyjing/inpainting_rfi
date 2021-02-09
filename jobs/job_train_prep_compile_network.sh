@@ -11,4 +11,4 @@
 source ~/HERA_ENV/bin/activate
 module load scipy-stack
 module load cuda cudnn
-python3 scripts/train_model.py --max_epochs 0 --id 0 --compile_only
+python3 scripts/train_model.py --max_epochs 0 --id 0 --compile_only --model alex

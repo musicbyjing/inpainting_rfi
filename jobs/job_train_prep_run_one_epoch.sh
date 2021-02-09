@@ -10,4 +10,4 @@
 source ~/HERA_ENV/bin/activate
 module load scipy-stack
 module load cuda cudnn
-python3 scripts/train_model.py --max_epochs 1 --id 1612730034_10_examples_1_masks
+python3 scripts/train_model.py --max_epochs 1 --id 1612730034_10_examples_1_masks --model colab

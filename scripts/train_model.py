@@ -129,7 +129,7 @@ def main():
 
     # Fit model
     history = model.fit(X_train, y_train, validation_split=0.2, verbose=1, batch_size=8, epochs=max_epochs, callbacks=callbacks_list)
-    model.save(os.path.join("models", f"{file_id}_model.h5"))
+    model.save(os.path.join("models", f"{model_name}_{file_id}_model.h5"))
     plot_loss(history, file_id)
     print("train_model.py has completed.")
 

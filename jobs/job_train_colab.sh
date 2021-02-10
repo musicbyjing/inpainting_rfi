@@ -2,8 +2,7 @@
 #SBATCH --account=def-acliu
 #SBATCH --time=0-06:00
 #SBATCH --gres=gpu:v100l:1
-#SBATCH --cpus-per-task=6
-#SBATCH --mem=200G
+#SBATCH --mem=128G
 #SBATCH --mail-user=jing.liu6@mail.mcgill.ca
 #SBATCH --mail-type=ALL
 #SBATCH --output=%N-%j.out

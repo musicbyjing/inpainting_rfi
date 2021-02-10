@@ -100,9 +100,9 @@ def main():
     model = None
     if model_name == "colab":
         model = build_and_compile_model()
-    elif model_name == "alex"
+    elif model_name == "alex":
         model = build_and_compile_AlexNet()
-    else
+    else:
         raise Exception("Unsupported model. Please try again")
         sys.exit(0)
     print(model.summary())

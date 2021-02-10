@@ -11,6 +11,7 @@ virtualenv ~/HERA_ENV
 source ~/HERA_ENV/bin/activate
 pip install git+https://github.com/HERA-Team/hera_sim
 pip install git+https://github.com/HERA-Team/uvtools
+pip install scikit-image
 module load scipy-stack
 pip install --user --no-index tensorflow_gpu
 ```

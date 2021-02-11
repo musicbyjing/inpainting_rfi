@@ -58,3 +58,10 @@ def plot_one_vis(input_vis, ylim, MX, DRNG, figsize, title, filepath):
     fig.text(0.02, 0.5, 'LST [rad]', ha='center', va='center', rotation='vertical')
 
     plt.savefig(filepath)
+
+def plot_one_mask(mask, filepath):
+    '''Plot one mask and save it'''
+    plt.figure(figsize=(12,12))
+    plt.grid(False)
+    plt.imshow(mask, cmap='inferno_r') # black is RFI
+    plt.savefig(filepath)

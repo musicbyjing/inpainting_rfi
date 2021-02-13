@@ -51,23 +51,23 @@ def build_and_compile_AlexNet():
     model = keras.Sequential([
         keras.layers.Conv2D(filters=96, kernel_size=(11,11), padding='same', activation='relu', input_shape=(1500,818,3)),
         keras.layers.BatchNormalization(),
-        keras.layers.MaxPool2D(pool_size=(2,2)),
-        keras.layers.UpSampling2D((2,2)),
+        # keras.layers.MaxPool2D(pool_size=(2,2)),
+        # keras.layers.UpSampling2D((2,2)),
         keras.layers.Conv2D(filters=256, kernel_size=(5,5), activation='relu', padding="same"),
         keras.layers.BatchNormalization(),
-        keras.layers.MaxPool2D(pool_size=(2,2)),
-        keras.layers.UpSampling2D((2,2)),
+        # keras.layers.MaxPool2D(pool_size=(2,2)),
+        # keras.layers.UpSampling2D((2,2)),
         keras.layers.Conv2D(filters=384, kernel_size=(3,3), strides=(1,1), activation='relu', padding="same"),
         keras.layers.BatchNormalization(),
         keras.layers.Conv2D(filters=384, kernel_size=(1,1), strides=(1,1), activation='relu', padding="same"),
         keras.layers.BatchNormalization(),
         keras.layers.Conv2D(filters=256, kernel_size=(1,1), strides=(1,1), activation='relu', padding="same"),
         keras.layers.BatchNormalization(),
-        keras.layers.MaxPool2D(pool_size=(2,2)),
-        keras.layers.UpSampling2D((2,2)),
-        keras.layers.Dense(128, activation='relu'),
+        # keras.layers.MaxPool2D(pool_size=(2,2)),
+        # keras.layers.UpSampling2D((2,2)),
+        keras.layers.Dense(256, activation='relu'),
         keras.layers.Dropout(0.5),
-        keras.layers.Dense(128, activation='relu'),
+        keras.layers.Dense(256, activation='relu'),
         keras.layers.Dropout(0.5),
         keras.layers.Dense(2)
     ])
@@ -84,9 +84,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--max_epochs", type=int, help="Maximum number of epochs")
     parser.add_argument("--id", type=str, help="ID of data to use for training")
+    parser.add_argument("--batch_size", type=int, help="Batch size")
+    parser.add_argument("--model", type=str, help="architecture to select. Current options are: colab, alex")
     parser.add_argument("--no-save-test", default=True, action="store_false", help="Run without saving generated Xtest and ytest sets")
     parser.add_argument("--compile_only", default=False, action="store_true", help="Quit after compiling and printing model")
-    parser.add_argument("--model", type=str, help="architecture to select. Current options are: colab, alex")
     args = parser.parse_args()
 
     max_epochs = args.max_epochs
@@ -94,6 +95,7 @@ def main():
     save_test = args.no_save_test
     compile_only = args.compile_only
     model_name = args.model
+    batch_size=args.batch_size
     # print(save_test)
 
     # Get model
@@ -128,7 +130,7 @@ def main():
     callbacks_list = [checkpoint]
 
     # Fit model
-    history = model.fit(X_train, y_train, validation_split=0.2, verbose=1, batch_size=8, epochs=max_epochs, callbacks=callbacks_list)
+    history = model.fit(X_train, y_train, validation_split=0.2, verbose=1, batch_size=batch_size, epochs=max_epochs, callbacks=callbacks_list)
     model.save(os.path.join("models", f"{model_name}_{file_id}_model.h5"))
     plot_loss(history, file_id)
     print("train_model.py has completed.")

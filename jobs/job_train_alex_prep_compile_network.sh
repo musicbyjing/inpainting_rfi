@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --account=def-acliu
-#SBATCH --time=1-12:00
+#SBATCH --time=0-00:45
 #SBATCH --gres=gpu:p100l:4
 #SBATCH --cpus-per-task=24
 #SBATCH --mem=0
@@ -13,4 +13,4 @@ nvidia-smi
 source ~/HERA_ENV/bin/activate
 module load scipy-stack
 module load cuda cudnn
-python3 scripts/train_model.py --max_epochs 500 --id 1612458166_500_examples_1_masks_CUT_2_2 --model alex
+python3 scripts/train_model.py --max_epochs 1 --id 1612458166_500_examples_1_masks_CUT_2_2 --model alex

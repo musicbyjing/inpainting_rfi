@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --account=def-acliu
 #SBATCH --time=00:59:00
-#SBATCH --mem=32G
+#SBATCH --mem=128G
 #SBATCH --mail-user=jing.liu6@mail.mcgill.ca
 #SBATCH --mail-type=ALL
 source ~/HERA_ENV/bin/activate

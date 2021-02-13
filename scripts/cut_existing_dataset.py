@@ -19,9 +19,9 @@ def split_data(data, labels, mask_list, time_div, freq_div, save, file_id):
     assert labels.shape[0] == l and mask_list.shape[0] == l, "Unequal lengths of data, labels, and mask list!"
 
     for i in range(l):
-        data_new.append(split(data[i], m//time_div, n//freq_div, channels_data)) # for a 1500 x 818 x 3 image, want blocks of size 750 x 409 x 3
-        labels_new.append(split(labels[i], m//time_div, n//freq_div, channels_labels)) 
-        mask_list_new.append(split(mask_list[i], m//time_div, n//freq_div, channels_mask)) 
+        data_new.extend(split(data[i], m//time_div, n//freq_div, channels_data)) # for a 1500 x 818 x 3 image, want blocks of size 750 x 409 x 3
+        labels_new.extend(split(labels[i], m//time_div, n//freq_div, channels_labels)) 
+        mask_list_new.extend(split(mask_list[i], m//time_div, n//freq_div, channels_mask)) 
         # FOR (MANUAL) CHECKING THAT THE CUTS WORK:
         # save_images(mask_list[i], split(mask_list[i], m//time_div, n//freq_div, channels_mask))
         # break
@@ -89,9 +89,9 @@ def main():
     ############# CHANGE BELOW LINE WHEN USING MORE THAN ONE MASK #############
     # print("MASK", mask.shape)
     mask_list = np.repeat(mask, data.shape[0], axis=0)
-    # print("MASK_LIST", mask_list.shape)
-    # print(data.shape)
-    # print(labels.shape)
+    print("Original data:", data.shape)
+    print("Original labels:", labels.shape)
+    print("Original mask list:", mask_list.shape)
 
     split_data(data, labels, mask_list, time_div, freq_div, save, file_id)
     

@@ -6,4 +6,4 @@
 #SBATCH --mail-type=ALL
 source ~/HERA_ENV/bin/activate
 module load scipy-stack
-python3 scripts/cut_existing_dataset.py --id 1612458166_500_examples_1_masks --divide-time-by 2 --divide-freq-by 2
+python3 scripts/cut_existing_dataset.py --id 1612458166_500_examples_1_masks --divide-time-by 5 --divide-freq-by 2

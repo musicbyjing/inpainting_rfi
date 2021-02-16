@@ -4,4 +4,4 @@
 #SBATCH --mem=4G
 #SBATCH --mail-user=jing.liu6@mail.mcgill.ca
 #SBATCH --mail-type=ALL
-python3 scripts/generate_dataset.py --n_masks 1 --n_examples 10
+python3 scripts/generate_dataset.py --n_masks 3 --n_examples 5

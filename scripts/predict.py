@@ -13,8 +13,10 @@ from utils import plot_one_vis
 ### Currently, chooses a random image from X_test and makes a prediction. 
 ### Saves the original, predicted, and ground truth as png's.
 
+mask = ""
+
 def load_model(model_name):
-    folder = "."
+    folder = "models"
     return keras.models.load_model(os.path.join(folder, f"{model_name}"), custom_objects={'masked_MSE': masked_MSE})
 
 def load_data(file_id):
@@ -37,7 +39,7 @@ def masked_MSE(y_true, y_pred):
     loss_val = K.mean(K.square(y_pred - y_true))
     return loss_val
 
-def get_prediction(model, data, label):
+def get_prediction(model, data, label, model_name):
     '''
     Get one prediction from Xtest and ytest
     '''
@@ -46,9 +48,9 @@ def get_prediction(model, data, label):
     
     folder = "images"
     pred = predict(model, data[i])
-    plot_one_vis(pred, 1500, 2.5, 3, (7,7), "Predicted", os.path.join(folder, "pred.png"))
-    plot_one_vis(data[i], 1500, 2.5, 3, (7,7), "Original", os.path.join(folder, "og.png"))
-    plot_one_vis(label[i], 1500, 2.5, 3, (7,7), "True", os.path.join(folder, "true.png"))
+    plot_one_vis(pred, 1500, 2.5, 3, (7,7), "Predicted", os.path.join(folder, f"{model_name}_pred.png"))
+    plot_one_vis(data[i], 1500, 2.5, 3, (7,7), "Original", os.path.join(folder, f"{model_name}_og.png"))
+    plot_one_vis(label[i], 1500, 2.5, 3, (7,7), "True", os.path.join(folder, f"{model_name}_true.png"))
     
     # Add unmasked part of original to prediction
     pred[mask == False] = data[i][mask == False][:,:2] # (1-mask)*og + mask*pred
@@ -75,7 +77,7 @@ def main():
     data, label = load_data(file_id)
 
     # get predictions
-    get_prediction(model, data, label)
+    get_prediction(model, data, label, model_name)
     print("predict.py completed.")
 
 if __name__ == "__main__":

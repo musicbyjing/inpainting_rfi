@@ -9,11 +9,13 @@ from tensorflow import keras
 from tensorflow.keras import backend as K
 from tensorflow.keras.callbacks import ModelCheckpoint
 
+from model import *
 from utils import load_dataset, plot_loss
 
 mask = ""
 
-def masked_MSE(y_true, y_pred):
+# def masked_MSE(mask):
+def loss (y_true, y_pred):
     '''
     MSE, only over masked areas
     '''
@@ -23,22 +25,25 @@ def masked_MSE(y_true, y_pred):
         yp = yp[mask == True]
     loss_val = K.mean(K.square(y_pred - y_true))
     return loss_val
+    # return loss
 
 def build_and_compile_model():
     model = keras.Sequential([
-        keras.layers.Conv2D(24, kernel_size=6, activation='relu', padding='same', input_shape=(1500,818,3), kernel_initializer=keras.initializers.GlorotNormal()),
-        keras.layers.MaxPooling2D((2,2)),
-        keras.layers.UpSampling2D((2,2)),
+        keras.layers.Conv2D(24, kernel_size=20, activation='relu', padding='same', input_shape=(1500,818,3), kernel_initializer=keras.initializers.GlorotNormal()),
+        # keras.layers.MaxPooling2D((2,2)),
+        # keras.layers.UpSampling2D((2,2)),
         keras.layers.Conv2D(24, kernel_size=15, activation='relu', padding='same', kernel_initializer=keras.initializers.GlorotNormal()),
-        keras.layers.MaxPooling2D((2,2)),
-        keras.layers.UpSampling2D((2,2)),
+        # keras.layers.MaxPooling2D((2,2)),
+        # keras.layers.UpSampling2D((2,2)),
         keras.layers.Conv2D(24, kernel_size=15, activation='relu', padding='same', kernel_initializer=keras.initializers.GlorotNormal()),
-        keras.layers.MaxPooling2D((2,2)),
-        keras.layers.UpSampling2D((2,2)),
-        keras.layers.Conv2D(24, kernel_size=15, activation='relu', padding='same', kernel_initializer=keras.initializers.GlorotNormal()),
-        keras.layers.MaxPooling2D((2,2)),
-        keras.layers.UpSampling2D((2,2)),
-        keras.layers.Dense(128, activation='relu'),
+        # keras.layers.MaxPooling2D((2,2)),
+        # keras.layers.UpSampling2D((2,2)),
+        keras.layers.Conv2D(24, kernel_size=9, activation='relu', padding='same', kernel_initializer=keras.initializers.GlorotNormal()),
+        keras.layers.Conv2D(24, kernel_size=6, activation='relu', padding='same', kernel_initializer=keras.initializers.GlorotNormal()),
+        keras.layers.Conv2D(24, kernel_size=6, activation='relu', padding='same', kernel_initializer=keras.initializers.GlorotNormal()),
+        # keras.layers.MaxPooling2D((2,2)),
+        # keras.layers.UpSampling2D((2,2)),
+        keras.layers.Dense(256, activation='relu'),
         keras.layers.Dense(2)
     ])
     model.compile(loss=masked_MSE, optimizer=tf.keras.optimizers.Adam(0.001), metrics=[masked_MSE])
@@ -104,6 +109,8 @@ def main():
         model = build_and_compile_model()
     elif model_name == "alex":
         model = build_and_compile_AlexNet()
+    elif model_name == 'unet':
+        model = unet(input_size=(740,409,3))
     else:
         raise Exception("Unsupported model. Please try again")
         sys.exit(0)
@@ -113,10 +120,10 @@ def main():
 
     # Load data
     global mask
-    data, labels, mask = load_dataset(file_id)
+    data, labels, masks = load_dataset(file_id)
     ############# CHANGE BELOW LINE WHEN USING MORE THAN ONE MASK #############
     mask = mask[0]
-    X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test, mask_train, mask_test = train_test_split(data, labels, masks, test_size=0.2, random_state=42)
     if save_test:
         np.save(os.path.join("data", f"{file_id}_Xtest.npy"), X_test)
         np.save(os.path.join("data", f"{file_id}_ytest.npy"), y_test)

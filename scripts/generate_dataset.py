@@ -136,22 +136,24 @@ def create_dataset(vis_list, mask_list, save):
 
     # apply random mask to each visibility plot
     else:
+        new_mask_list = [] # stores the corresponding mask for each example
         for i, v in enumerate(data):
             mask = random.choice(mask_list)
+            new_mask_list.append(mask)
             v[mask == True] = 0
-            v[:, :, :, 2] = np.logical_not(mask) # Set mask as 3rd channel
+            v[:, :, 2] = np.logical_not(mask) # Set mask as 3rd channel
             # print(np.count_nonzero(train_dataset[0]==0)) # check number of 0's in a given vis (to check if mask worked)
-        labels = vis_list 
+        labels = vis_list
     
     # Save files
     if save:
         prefix = f"{int(time.time())}_{len(vis_list)}_examples_{len(mask_list)}_masks"
         np.save(os.path.join("data", f"{prefix}_dataset.npy"), data)
         np.save(os.path.join("data", f"{prefix}_labels.npy"), labels)
-        np.save(os.path.join("data", f"{prefix}_masks.npy"), mask_list)
+        np.save(os.path.join("data", f"{prefix}_masks.npy"), new_mask_list)
         
         print("Dataset saved.")
-    print(f"Data shape: {data.shape}. Labels shape: {labels.shape}")
+    print(f"Data shape: {data.shape}. Labels shape: {labels.shape}. Masks shape: {new_mask_list.shape}")
 
 
 ##############################

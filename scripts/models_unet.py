@@ -8,7 +8,9 @@ from keras.optimizers import *
 from keras.callbacks import ModelCheckpoint, LearningRateScheduler
 from keras import backend as keras
 
-def unet(pretrained_weights = None, input_size = (256,256,1)):
+from utils import masked_MSE
+
+def unet(mask, pretrained_weights = None, input_size = (256,256,1)):
     inputs = Input(input_size)
     conv1 = Conv2D(64, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(inputs)
     conv1 = Conv2D(64, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv1)
@@ -49,11 +51,11 @@ def unet(pretrained_weights = None, input_size = (256,256,1)):
     conv9 = Conv2D(64, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv9)
     conv9 = Conv2D(2, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv9)
     conv10 = Conv2D(1, 1, activation = 'sigmoid')(conv9)
-    dense1 = Dense(8)
+    dense1 = Dense(2)(conv10)
 
-    model = Model(input = inputs, output = dense1)
+    model = Model(inputs = inputs, outputs = dense1)
 
-    model.compile(optimizer = Adam(lr = 1e-4), loss=masked_MSE, metrics=[masked_MSE])
+    model.compile(optimizer = Adam(lr = 1e-4), loss=masked_MSE(mask), metrics=[masked_MSE(mask)])
     
     model.summary()
 
@@ -61,5 +63,3 @@ def unet(pretrained_weights = None, input_size = (256,256,1)):
     	model.load_weights(pretrained_weights)
 
     return model
-
-

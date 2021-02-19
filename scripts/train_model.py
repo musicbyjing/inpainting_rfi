@@ -38,6 +38,12 @@ def main():
     trim_all = args.trim_all
     # print(save_test)
 
+    # Load data
+    global mask
+    data, labels, masks = load_dataset(file_id)
+    ############# CHANGE BELOW LINE WHEN USING MORE THAN ONE MASK #############
+    mask = masks[0]
+
     # Get model
     model = None
     if model_name == "colab":
@@ -45,7 +51,7 @@ def main():
     elif model_name == "alex":
         model = build_and_compile_AlexNet()
     elif model_name == 'unet':
-        model = unet(input_size=(256,256,3))
+        model = unet(mask, input_size=(512,512,3))
     else:
         raise Exception("Unsupported model. Please try again")
         sys.exit(0)
@@ -53,12 +59,7 @@ def main():
     if compile_only:
         sys.exit(0)
 
-    # Load data
-    global mask
-    data, labels, masks = load_dataset(file_id)
-    ############# CHANGE BELOW LINE WHEN USING MORE THAN ONE MASK #############
-    mask = mask[0]
-
+    # Train-test split
     X_train, X_test, y_train, y_test, mask_train, mask_test = train_test_split(data, labels, masks, test_size=0.2, random_state=42)
     if save_test:
         np.save(os.path.join("data", f"{file_id}_Xtest.npy"), X_test)
@@ -69,7 +70,7 @@ def main():
     
     # Save checkpoints
     filepath=os.path.join("models", f"{model_name}_weights.best.hdf5")
-    checkpoint = ModelCheckpoint(filepath, monitor='val_masked_MSE', verbose=1, save_best_only=True, mode='min')
+    checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
     callbacks_list = [checkpoint]
 
     # Fit model

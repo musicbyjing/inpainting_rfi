@@ -1,25 +1,12 @@
-import numpy as np 
+import numpy as np
 import os
 import skimage.io as io
 import skimage.transform as trans
-import numpy as np
 from keras.models import *
 from keras.layers import *
 from keras.optimizers import *
 from keras.callbacks import ModelCheckpoint, LearningRateScheduler
 from keras import backend as keras
-
-
-def masked_MSE(y_true, y_pred):
-    '''
-    MSE, only over masked areas
-    '''
-    for yt in y_true: # for each example in the batch
-        yt = yt[mask == True]
-    for yp in y_pred:
-        yp = yp[mask == True]
-    loss_val = K.mean(K.square(y_pred - y_true))
-    return loss_val
 
 def unet(pretrained_weights = None, input_size = (256,256,1)):
     inputs = Input(input_size)

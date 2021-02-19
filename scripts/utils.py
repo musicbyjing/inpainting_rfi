@@ -2,6 +2,18 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 import aipy, uvtools
+from tensorflow.keras import backend as K
+
+def masked_MSE(y_true, y_pred):
+    '''
+    MSE, only over masked areas
+    '''
+    for yt in y_true: # for each example in the batch
+        yt = yt[mask == True]
+    for yp in y_pred:
+        yp = yp[mask == True]
+    loss_val = K.mean(K.square(y_pred - y_true))
+    return loss_val
 
 def load_dataset(file_id):
     ''' Load dataset, consisting of data, labels, and masks '''

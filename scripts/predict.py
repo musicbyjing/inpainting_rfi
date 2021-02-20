@@ -17,7 +17,7 @@ mask = ""
 
 def load_model(model_name, mask):
     folder = "models"
-    return keras.models.load_model(os.path.join(folder, f"{model_name}"), custom_objects={'masked_MSE': masked_MSE(mask)})
+    return keras.models.load_model(os.path.join(folder, f"{model_name}"), custom_objects={'loss_fn': masked_MSE(mask)})
 
 def load_data(file_id):
     folder = "data"
@@ -44,7 +44,7 @@ def get_prediction(model, data, label, mask, model_name):
     
     # Add unmasked part of original to prediction
     pred[mask == False] = data[i][mask == False][:,:2] # (1-mask)*og + mask*pred
-    plot_one_vis(pred, 1500, 2.5, 3, (7,7), "Predicted, masked", os.path.join(folder, "pred_masked.npy"))
+    plot_one_vis(pred, 1500, 2.5, 3, (7,7), "Predicted, masked", os.path.join(folder, "pred_masked.png"))
 
 
 ##############################

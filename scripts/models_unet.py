@@ -50,10 +50,11 @@ def unet(mask, pretrained_weights = None, input_size = (256,256,1)):
     conv9 = Conv2D(64, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(merge9)
     conv9 = Conv2D(64, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv9)
     conv9 = Conv2D(2, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv9)
-    conv10 = Conv2D(1, 1, activation = 'sigmoid')(conv9)
-    dense1 = Dense(2)(conv10)
+    
+    dense1 = Dense(256, activation='relu')(conv9)
+    dense2 = Dense(2)(dense1)
 
-    model = Model(inputs = inputs, outputs = dense1)
+    model = Model(inputs = inputs, outputs = dense2)
 
     model.compile(optimizer = Adam(lr = 1e-4), loss=masked_MSE(mask), metrics=[masked_MSE(mask)])
     

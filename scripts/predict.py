@@ -8,38 +8,28 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import backend as K
 
-from utils import plot_one_vis
+from utils import plot_one_vis, masked_MSE
 
 ### Currently, chooses a random image from X_test and makes a prediction. 
 ### Saves the original, predicted, and ground truth as png's.
 
 mask = ""
 
-def load_model(model_name):
+def load_model(model_name, mask):
     folder = "models"
-    return keras.models.load_model(os.path.join(folder, f"{model_name}"), custom_objects={'masked_MSE': masked_MSE})
+    return keras.models.load_model(os.path.join(folder, f"{model_name}"), custom_objects={'masked_MSE': masked_MSE(mask)})
 
 def load_data(file_id):
     folder = "data"
     data = np.load(os.path.join(folder, f"{file_id}_Xtest.npy"))
     label = np.load(os.path.join(folder, f"{file_id}_ytest.npy"))
-    return data, label
+    mask = np.load(os.path.join(folder, f"{file_id}_masks.npy"))[0]
+    return data, label, mask
     
 def predict(model, input):
     return model.predict(np.array([input, ]))[0] # since model.predict() needs an array
 
-def masked_MSE(y_true, y_pred):
-    '''
-    MSE, only over masked areas
-    '''
-    for yt in y_true: # for each example in the batch
-        yt = yt[mask == True]
-    for yp in y_pred:
-        yp = yp[mask == True]
-    loss_val = K.mean(K.square(y_pred - y_true))
-    return loss_val
-
-def get_prediction(model, data, label, model_name):
+def get_prediction(model, data, label, mask, model_name):
     '''
     Get one prediction from Xtest and ytest
     '''
@@ -72,12 +62,12 @@ def main():
     model_name = args.model_name
     
     # load parameters
+    data, label, mask = load_data(file_id)
     model = None
-    model = load_model(model_name)
-    data, label = load_data(file_id)
+    model = load_model(model_name, mask)
 
     # get predictions
-    get_prediction(model, data, label, model_name)
+    get_prediction(model, data, label, mask, model_name)
     print("predict.py completed.")
 
 if __name__ == "__main__":

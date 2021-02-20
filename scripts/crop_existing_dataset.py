@@ -24,7 +24,7 @@ def crop_data(data, labels, mask_list, dim, save, file_id):
         mask_list_new[i] = mask_list[i, :dim, :dim]
 
     if save:
-        prefix = f"{file_id}_CUT_{dim}x{dim}"
+        prefix = f"{file_id}_CROPPED_{dim}x{dim}"
         np.save(os.path.join("data", f"{prefix}_dataset.npy"), data_new)
         np.save(os.path.join("data", f"{prefix}_labels.npy"), labels_new)
         np.save(os.path.join("data", f"{prefix}_masks.npy"), mask_list_new)

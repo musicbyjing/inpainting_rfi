@@ -36,7 +36,8 @@ def plot_loss(history, file_id):
     plt.grid(True)
     plt.savefig(f"{file_id}.png")
 
-def plot_one_vis(input_vis, ylim, MX, DRNG, figsize, title, filepath):
+def plot_one_vis(input_vis, MX, DRNG, figsize, title, filepath):
+    # Removed ylim (and xlim)
     '''
     Plot one visibility waterfall plot and save it
     MX is max value of color scale in the plot
@@ -60,13 +61,15 @@ def plot_one_vis(input_vis, ylim, MX, DRNG, figsize, title, filepath):
     plt.suptitle(title)
     plt.grid(False)  
     plt.colorbar(label=r"Amplitude [log$_{10}$(V/Jy)]")
-    plt.ylim(0,ylim)
+    # plt.xlim(0,xlim)
+    # plt.ylim(0,ylim)
 
     fig.sca(ax2)
     uvtools.plot.waterfall(vis, mode='phs')
     plt.grid(False)
     plt.colorbar(label="Phase [rad]")
-    plt.ylim(0,ylim)
+    # plt.xlim(0,xlim)
+    # plt.ylim(0,ylim)
     plt.xlabel("Frequency channel")
 
     fig.text(0.02, 0.5, 'LST [rad]', ha='center', va='center', rotation='vertical')

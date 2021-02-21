@@ -38,13 +38,13 @@ def get_prediction(model, data, label, mask, model_name):
     
     folder = "images"
     pred = predict(model, data[i])
-    plot_one_vis(pred, 1500, 2.5, 3, (7,7), "Predicted", os.path.join(folder, f"{model_name}_pred.png"))
-    plot_one_vis(data[i], 1500, 2.5, 3, (7,7), "Original", os.path.join(folder, f"{model_name}_og.png"))
-    plot_one_vis(label[i], 1500, 2.5, 3, (7,7), "True", os.path.join(folder, f"{model_name}_true.png"))
+    plot_one_vis(pred, 2.5, 3, (7,7), "Predicted", os.path.join(folder, f"{model_name}_pred.png"))
+    plot_one_vis(data[i], 2.5, 3, (7,7), "Original", os.path.join(folder, f"{model_name}_og.png"))
+    plot_one_vis(label[i], 2.5, 3, (7,7), "True", os.path.join(folder, f"{model_name}_true.png"))
     
     # Add unmasked part of original to prediction
     pred[mask == False] = data[i][mask == False][:,:2] # (1-mask)*og + mask*pred
-    plot_one_vis(pred, 1500, 2.5, 3, (7,7), "Predicted, masked", os.path.join(folder, "pred_masked.png"))
+    plot_one_vis(pred, 2.5, 3, (7,7), "Predicted, masked", os.path.join(folder, f"{model_name}_pred_masked.png"))
 
 
 ##############################

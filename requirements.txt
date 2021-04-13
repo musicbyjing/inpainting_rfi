@@ -1,0 +1,8 @@
+git+https://github.com/HERA-Team/hera_sim
+git+https://github.com/HERA-Team/uvtools
+git+https://github.com/HERA-Team/hera_pspec
+tensorflow_gpu
+tensorflow_cpu
+keras
+scikit-learn
+tqdm

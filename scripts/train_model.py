@@ -5,13 +5,11 @@ import sys
 
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
-from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger
 
 from models_unet import *
 from models_deep import *
-from utils import load_dataset, plot_loss
-
-mask = ""
+from utils import load_dataset, plot_loss, normalize, denormalize
 
 def main():
     # tf stuff
@@ -24,6 +22,7 @@ def main():
     parser.add_argument("--id", type=str, help="ID of data to use for training")
     parser.add_argument("--batch_size", type=int, help="Batch size")
     parser.add_argument("--model", type=str, help="architecture to select. Current options are: colab, alex")
+    parser.add_argument("--normalize", default=False, action="store_true", help="Normalize data before sending into NN")
     parser.add_argument("--trim_all", default=False, action="store_true", help="trim data, labels, masks to 256x256 squares")
     parser.add_argument("--no-save-test", default=True, action="store_false", help="Run without saving generated Xtest and ytest sets")
     parser.add_argument("--compile_only", default=False, action="store_true", help="Quit after compiling and printing model")
@@ -31,18 +30,18 @@ def main():
 
     max_epochs = args.max_epochs
     file_id = args.id
+    batch_size=args.batch_size
+    model_name = args.model
+    normalize = args.normalize
+    trim_all = args.trim_all
     save_test = args.no_save_test
     compile_only = args.compile_only
-    model_name = args.model
-    batch_size=args.batch_size
-    trim_all = args.trim_all
     # print(save_test)
 
     # Load data
-    global mask
-    data, labels, masks = load_dataset(file_id)
-    ############# CHANGE BELOW LINE WHEN USING MORE THAN ONE MASK #############
-    mask = masks[0]
+    data, labels, _ = load_dataset(file_id)
+    if normalize:
+        data, labels = normalize(data, labels)
 
     # Get model
     model = None
@@ -51,7 +50,7 @@ def main():
     elif model_name == "alex":
         model = build_and_compile_AlexNet()
     elif model_name == 'unet':
-        model = unet(mask, input_size=(512,512,3))
+        model = unet(input_size=(512,512,4))
     else:
         raise Exception("Unsupported model. Please try again")
         sys.exit(0)
@@ -60,22 +59,22 @@ def main():
         sys.exit(0)
 
     # Train-test split
-    X_train, X_test, y_train, y_test, mask_train, mask_test = train_test_split(data, labels, masks, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.2, random_state=42)
     if save_test:
         np.save(os.path.join("data", f"{file_id}_Xtest.npy"), X_test)
         np.save(os.path.join("data", f"{file_id}_ytest.npy"), y_test)
     del data
     print("X_TRAIN", X_train.shape, "X_TEST", X_test.shape, "Y_TRAIN", y_train.shape, "Y_TEST", y_test.shape)
-    print("MASK", mask.shape)
     
-    # Save checkpoints
-    filepath=os.path.join("models", f"{model_name}_weights.best.hdf5")
+    # Calllbacks
+    filepath=os.path.join("models", f"{model_name}_{file_id}_weights_best.hdf5")
     checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
-    callbacks_list = [checkpoint]
+    csv_logger = CSVLogger(os.path.join("logs", f"{model_name}_{file_id}_train_log.csv"))
+    callbacks_list = [checkpoint, csv_logger]
 
     # Fit model
     history = model.fit(X_train, y_train, validation_split=0.2, verbose=1, batch_size=batch_size, epochs=max_epochs, callbacks=callbacks_list)
-    model.save(os.path.join("models", f"{model_name}_{file_id}_model.h5"))
+    model.save(os.path.join("models", f"{model_name}_{file_id}_ending_weights.h5"))
     plot_loss(history, file_id)
     print("train_model.py has completed.")
 

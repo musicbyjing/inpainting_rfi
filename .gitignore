@@ -1,6 +1,12 @@
-*.npy
 generated/*
 datasets_for_learning/*
+data_real/*
 .ipynb_checkpoints/*
+models/*
+images/*
 .DS_Store
+
+*.npy
 *.out
+*.h5
+*.hdf5

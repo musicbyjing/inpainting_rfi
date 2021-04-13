@@ -5,11 +5,11 @@
 #SBATCH --mem=128G
 #SBATCH --mail-user=jing.liu6@mail.mcgill.ca
 #SBATCH --mail-type=ALL
-#SBATCH --output=%j.out
+#SBATCH --output=unet-%j.out
 
 hostname
 nvidia-smi
-source ~/HERA_ENV/bin/activate
-module load scipy-stack
+source ~/HERA_ENV_3.8.2/bin/activate
+# module load scipy-stack
 module load cuda cudnn
-python3 scripts/train_model.py --model unet --max_epochs 500 --id 1612730034_10_examples_1_masks_CROPPED_256x256 --batch_size 4
+python3 scripts/train_model.py --model unet --max_epochs 5000 --id 1617565338_550_examples_5_masks --batch_size 8

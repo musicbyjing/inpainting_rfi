@@ -2,7 +2,6 @@ import numpy as np
 import os
 import argparse
 import sys
-from skimage.util.shape import view_as_blocks
 
 from utils import load_dataset, plot_one_vis, plot_one_mask
 
@@ -49,13 +48,13 @@ def main():
     save = args.no_save
 
     # Load data
-    data, labels, mask = load_dataset(file_id)
-    ############# CHANGE BELOW LINE WHEN USING MORE THAN ONE MASK #############
-    # print("MASK", mask.shape)
-    mask_list = np.repeat(mask, data.shape[0], axis=0)
+    data, labels, mask_list = load_dataset(file_id)
     print("Original data:", data.shape)
     print("Original labels:", labels.shape)
     print("Original mask list:", mask_list.shape)
+    ############# CHANGE BELOW LINE WHEN USING MORE THAN ONE MASK #############
+    # print("MASK", mask.shape)
+    # mask_list = np.repeat(mask, data.shape[0], axis=0)
 
     crop_data(data, labels, mask_list, dim, save, file_id)
     

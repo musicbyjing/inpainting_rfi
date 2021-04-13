@@ -8,28 +8,34 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import backend as K
 
-from utils import plot_one_vis, masked_MSE
+from utils import plot_one_vis, masked_MSE, masked_MSE_multiple_masks
 
 ### Currently, chooses a random image from X_test and makes a prediction. 
 ### Saves the original, predicted, and ground truth as png's.
 
 mask = ""
 
-def load_model(model_name, mask):
+def load_model(model_name, mask=None):
     folder = "models"
-    return keras.models.load_model(os.path.join(folder, f"{model_name}"), custom_objects={'loss_fn': masked_MSE(mask)})
+    return keras.models.load_model(os.path.join(folder, f"{model_name}"), compile=False)
+    # custom_objects={'loss_fn': masked_MSE_multiple_masks})
 
 def load_data(file_id):
     folder = "data"
     data = np.load(os.path.join(folder, f"{file_id}_Xtest.npy"))
-    label = np.load(os.path.join(folder, f"{file_id}_ytest.npy"))
-    mask = np.load(os.path.join(folder, f"{file_id}_masks.npy"))[0]
-    return data, label, mask
-    
+    labels = np.load(os.path.join(folder, f"{file_id}_ytest.npy"))
+    masks = np.load(os.path.join(folder, f"{file_id}_masks.npy"))
+    return data, labels, masks
+
+def load_real_data(file_id):
+    folder = "data_real"
+    data = np.load((os.path.join(folder, f"{file_id}.npy")))
+    return data
+
 def predict(model, input):
     return model.predict(np.array([input, ]))[0] # since model.predict() needs an array
 
-def get_prediction(model, data, label, mask, model_name):
+def get_prediction(model, data, labels, masks, model_name, ground_truth):
     '''
     Get one prediction from Xtest and ytest
     '''
@@ -37,14 +43,20 @@ def get_prediction(model, data, label, mask, model_name):
     i = random.randint(0, len(data)-1)
     
     folder = "images"
+    plot_one_vis(data[i], 2.5, 3, (7,7), "Original", os.path.join(folder, f"{model_name}_og.png"), show_pred_area=True)
     pred = predict(model, data[i])
     plot_one_vis(pred, 2.5, 3, (7,7), "Predicted", os.path.join(folder, f"{model_name}_pred.png"))
-    plot_one_vis(data[i], 2.5, 3, (7,7), "Original", os.path.join(folder, f"{model_name}_og.png"))
-    plot_one_vis(label[i], 2.5, 3, (7,7), "True", os.path.join(folder, f"{model_name}_true.png"))
     
-    # Add unmasked part of original to prediction
-    pred[mask == False] = data[i][mask == False][:,:2] # (1-mask)*og + mask*pred
-    plot_one_vis(pred, 2.5, 3, (7,7), "Predicted, masked", os.path.join(folder, f"{model_name}_pred_masked.png"))
+    if not ground_truth:
+        plot_one_vis(labels[i], 2.5, 3, (7,7), "True", os.path.join(folder, f"{model_name}_true.png"))
+    
+        # Add unmasked part of original to prediction
+        mask = masks[i]
+        print("PRED", pred.shape)
+        print("MASK", mask.shape)
+        # Something's wrong with the dimensions in the below line...
+        pred[:, :][mask == False] = data[i][:, :, :2][mask == False] # (1-mask)*og + mask*pred 
+        plot_one_vis(pred, 2.5, 3, (7,7), "Predicted, masked", os.path.join(folder, f"{model_name}_pred_masked.png"))
 
 
 ##############################
@@ -56,18 +68,26 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--id", type=str, help="ID of data to use for making predictions")
     parser.add_argument("--model-name", type=str, help="Name of the trained model, including file extension")
+    parser.add_argument("--no-ground-truth", default=False, action="store_true", help="Predict on real data (without ground truth)")
     args = parser.parse_args()
 
     file_id = args.id
     model_name = args.model_name
+    ground_truth = args.no_ground_truth
     
-    # load parameters
-    data, label, mask = load_data(file_id)
     model = None
-    model = load_model(model_name, mask)
+    model = load_model(model_name)
+
+    # load parameters
+    if ground_truth:
+        data = load_real_data(file_id)
+        get_prediction(model, data, None, None, model_name, ground_truth)
+    else:
+        data, labels, masks = load_data(file_id)
+        get_prediction(model, data, labels, masks, model_name, ground_truth)
 
     # get predictions
-    get_prediction(model, data, label, mask, model_name)
+    
     print("predict.py completed.")
 
 if __name__ == "__main__":

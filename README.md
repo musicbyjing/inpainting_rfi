@@ -4,18 +4,19 @@ A project to inpaint radio frequency interference (RFI) in telescope data. For P
 
 ## Requirements:
 
+### Create an environment 
+
 To run on Compute Canada, follow these steps to create a virtual environment with all necessary dependencies:
 ```
 module load python/3.7.0
 virtualenv ~/HERA_ENV
 source ~/HERA_ENV/bin/activate
-pip install git+https://github.com/HERA-Team/hera_sim
-pip install git+https://github.com/HERA-Team/uvtools
-pip install scikit-image
-module load scipy-stack
-pip install --user --no-index tensorflow_gpu
+pip install -r requirements.txt --no-index
+# module load scipy-stack
 ```
 Then, create or import job files, and you're good to go!
+
+### Load an existing environment
 
 When logging in again, make sure to call
 ```
@@ -23,3 +24,20 @@ source ~/HERA_ENV/bin/activate
 module load scipy-stack
 ```
 *BEFORE* running jobs--or alternately, include these lines in the job script.
+
+### Workflow
+
+#### Creating a simulated dataset
+
+1. Run `gen_data.sh`, creating a simulated dataset with simulated masks.
+2. Run `crop_data.sh` to crop the dataset to squares.
+
+#### Creating a real dataset
+
+1. Run `load_real_data.sh` to cut a `pyuvdata` file into as many `dim`x`dim` squares as possible, stored in `{x}real_samples_{dim}x{dim}.npy`. These real visibility plots will have real RFI masks.
+2. Pass the above's output to `gen_data.sh` with the `--from-vis` flag, which creates a dataset that adds on simulated masks.
+
+#### Training
+
+1. Run the finished dataset through `train_unet.sh`.
+2. See results using `predict.sh`.

@@ -26,13 +26,15 @@ def yeet():
     np.save("1sample_real.npy", data[0])
 
 def yeet2():
-    data = np.load("data_real/550_examples_5_masks_sim_CROPPED_512x512_dataset.npy")
+    data = np.load("data/1617565338_550_examples_5_masks_dataset.npy")
+    labels = np.load("data/1617565338_550_examples_5_masks_labels.npy")
     print("data", data.shape)
-    data2 = np.zeros((data.shape[0], data.shape[1], data.shape[2], 3))
-    print("data2", data2.shape)
-    data2 = data[:, :, :, :3]
-    np.save("data_real/550_sim_examples_5_masks_CROPPED_512x512x3_data.npy", data2)
-    np.save("1sample.npy", data2[0])
+    data2 = np.zeros((10, data.shape[1], data.shape[2], data.shape[3]))
+    labels2 = np.zeros((10, labels.shape[1], labels.shape[2], labels.shape[3]))
+    data2 = data[:10, :, :, :]
+    labels2 = labels[:10, :, :, :]
+    np.save("data/1617565338_10_examples_5_masks_dataset.npy", data2)
+    np.save("data/1617565338_10_examples_5_masks_labels.npy", labels2)
 
 def test_norm():
     data, labels, _ = load_dataset("1616898929_544_examples_5_masks")
@@ -44,7 +46,7 @@ def main():
     print("starting", flush=True)
     # filename = os.path.join('data_real', 'sample.uvh5')
     # uvd, antpairpols = load_data(filename)
-    test_norm()
+    yeet2()
 
     print("test.py complete.", flush=True)
 

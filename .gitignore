@@ -10,3 +10,4 @@ images/*
 *.out
 *.h5
 *.hdf5
+*.pyc

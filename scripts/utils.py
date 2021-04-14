@@ -62,9 +62,8 @@ def load_dataset(file_id):
     folder = "data"
     data = np.load(os.path.join(folder, f"{file_id}_dataset.npy"))
     labels = np.load(os.path.join(folder, f"{file_id}_labels.npy"))
-    mask = np.load(os.path.join(folder,f"{file_id}_masks.npy"))
     # print("DATA SHAPE", data.shape, "LABELS SHAPE", labels.shape)
-    return data, labels, mask
+    return data, labels
 
 def plot_loss(history, file_id):
     ''' Plot learning curves '''

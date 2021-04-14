@@ -8,11 +8,10 @@ A project to inpaint radio frequency interference (RFI) in telescope data. For P
 
 To run on Compute Canada, follow these steps to create a virtual environment with all necessary dependencies:
 ```
-module load python/3.7.0
+module load python/3.8.2
 virtualenv ~/HERA_ENV
 source ~/HERA_ENV/bin/activate
 pip install -r requirements.txt --no-index
-# module load scipy-stack
 ```
 Then, create or import job files, and you're good to go!
 

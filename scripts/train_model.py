@@ -43,7 +43,7 @@ def main():
     # Load data
     data, labels = load_dataset(file_id)
     if normalize:
-        data, labels = normalize(data, labels)
+        data = normalize(data)
 
     # Get model
     model = None

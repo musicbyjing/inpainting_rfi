@@ -38,8 +38,10 @@ def main():
     compile_only = args.compile_only
     # print(save_test)
 
+    print(np.version.version)
+
     # Load data
-    data, labels, _ = load_dataset(file_id)
+    data, labels = load_dataset(file_id)
     if normalize:
         data, labels = normalize(data, labels)
 
@@ -69,7 +71,7 @@ def main():
     # Calllbacks
     filepath=os.path.join("models", f"{model_name}_{file_id}_weights_best.hdf5")
     checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
-    csv_logger = CSVLogger(os.path.join("logs", f"{model_name}_{file_id}_train_log.csv"))
+    csv_logger = CSVLogger(os.path.join("logs", f"{model_name}_{file_id}_train_log.csv"), append=False)
     callbacks_list = [checkpoint, csv_logger]
 
     # Fit model

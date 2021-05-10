@@ -33,15 +33,6 @@ module load scipy-stack
     - Masks can be *simulated* (generated) or *real* (from HERA)
 - A training **dataset** is composed of two files: `/data/ID_dataset.npy` and `/data/ID_labels.npy`, where `ID` is the same. When running scripts on a particular dataset, the usage is `<command> --id ID`.
 
-# Overview of files
-
-## `/scripts`
-
-- `crop_existing_dataset.py`: Given a dataset {data, labels} where each example is F (freq) x T (time), crop into D x D squares by taking the first D pixels in each dimension.
-    - Usage: `python3 scripts/crop_existing_dataset.py --dim D --id ID`
-- `cut_existing_dataset.py`: Given a dataset where each example is F x T, divide each example into AB examples where each new example is F//B x T//A, where // denotes integer division.
-    - Usage: `python3 scripts/cut_existing_dataset.py --id ID --divide-time-by A --divide-freq-by B`
-
 # Workflow
 
 ## Creating a simulated dataset
@@ -51,10 +42,28 @@ module load scipy-stack
 
 ## Creating a real dataset
 
-1. Run `load_real_data.sh` to cut a `pyuvdata` file into as many `dim`x`dim` squares as possible, stored in `{x}real_samples_{dim}x{dim}.npy`. These real visibility plots will have real RFI masks.
+1. Run `load_real_data.sh` to cut a `pyuvdata` file into as many `dim` x `dim` squares as possible, stored in `{n}real_samples_{dim}x{dim}.npy`. These real visibility plots will have real RFI masks.
 2. Pass the above's output to `gen_data.sh` with the `--from-vis` flag, which creates a dataset that adds on simulated masks.
 
 ## Training
 
 1. Run the finished dataset through `train_unet.sh`.
 2. See results using `predict.sh`.
+
+# Overview of files
+
+## `/scripts`
+
+- `crop_existing_dataset.py`: Given a dataset {data, labels} where each example is F (freq) x T (time), crop into D x D squares by taking the first D pixels in each dimension.
+    - Usage: `python3 scripts/crop_existing_dataset.py --dim D --id ID`
+- `cut_existing_dataset.py`: Given a dataset where each example is F x T, divide each example into AB examples where each new example is F//B x T//A, where // denotes integer division.
+    - Usage: `python3 scripts/cut_existing_dataset.py --id ID --divide-time-by A --divide-freq-by B`
+- `generate_dataset.py`: There are two components to a dataset: visibilities and masks. To use simulated visibilities, specify the number of examples to generate with `--n_examples`. Otherwise, specify a file with visibilities using `--from-vis` to use existing visibilities.
+    - Usage: 
+        - `python3 scripts/generate_dataset.py --n_masks M --n_examples N` generates N *simulated* visibilities with M masks applied at random.
+        - `python3 scripts/generate_dataset.py --n_masks M --from-vis data_real/FILE.npy` where `FILE` holds existing visibilities. This usage applies M masks at random over top of existing visibilities.
+
+# Troubleshooting
+
+- (May 10, 2021) ValueError: numpy.ndarray size changed, may indicate binary incompatibility. Expected 88 from C header, got 80 from PyObject
+    - `pip install numpy==1.20`

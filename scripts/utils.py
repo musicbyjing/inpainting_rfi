@@ -13,7 +13,7 @@ def masked_MSE(mask):
             yt = yt[mask == True]
         for yp in y_pred:
             yp = yp[mask == True]
-        loss_val = K.mean(K.square(y_pred - y_true))
+        loss_val = K.mean(K.square(K.abs(y_pred - y_true)))
         return loss_val
     return loss_fn
 
@@ -34,10 +34,10 @@ def masked_MSE_multiple_masks(y_true, y_pred):
         
         yt = yt[sim_minus_real_mask == True]
         yp = yp[sim_minus_real_mask == True]
-    loss_val = K.mean(K.square(y_pred - y_true[:, :, :, :2])) # take loss over masked areas
+    loss_val = K.mean(K.square(K.abs(y_pred - y_true[:, :, :, :2]))) # take loss over masked areas
     return loss_val
 
-def normalize(data, labels):
+def normalize(data):
     '''
     Normalize over non-masked areas by subtracting mean of all pixels of all images and 
     dividing by std
@@ -47,18 +47,18 @@ def normalize(data, labels):
     std = np.std(data[nonzero])
     data -= mean
     data /= std
-    return data, labels, mean, std
+    return data
 
-def denormalize(data, labels, mean, std):
-    '''
-    De-normalize
-    '''
-    data += mean
-    data *= std
-    return data, labels
+# def denormalize(data, labels, mean, std):
+#     '''
+#     De-normalize
+#     '''
+#     data += mean
+#     data *= std
+#     return data, labels
 
 def load_dataset(file_id):
-    ''' Load dataset, consisting of data, labels, and masks '''
+    ''' Load dataset, consisting of data and labels '''
     folder = "data"
     data = np.load(os.path.join(folder, f"{file_id}_dataset.npy"))
     labels = np.load(os.path.join(folder, f"{file_id}_labels.npy"))

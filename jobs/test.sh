@@ -7,6 +7,6 @@
 #SBATCH --output=test-%j.out
 
 source ~/HERA_ENV_3.8.2/bin/activate
-pip install pyuvdata
-# module load scipy-stack
+# pip install pyuvdata
+module load scipy-stack
 python3 scripts/test.py

@@ -33,8 +33,8 @@ def yeet2():
     labels2 = np.zeros((10, labels.shape[1], labels.shape[2], labels.shape[3]))
     data2 = data[:10, :, :, :]
     labels2 = labels[:10, :, :, :]
-    np.save("data/1617565338_10_examples_5_masks_dataset.npy", data2)
-    np.save("data/1617565338_10_examples_5_masks_labels.npy", labels2)
+    np.save("1617565338_10_examples_5_masks_dataset.npy", data2)
+    np.save("1617565338_10_examples_5_masks_labels.npy", labels2)
 
 def test_norm():
     data, labels, _ = load_dataset("1616898929_544_examples_5_masks")

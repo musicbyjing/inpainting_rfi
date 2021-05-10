@@ -1,8 +1,5 @@
 git+https://github.com/HERA-Team/hera_sim
-pyuvdata
 git+https://github.com/HERA-Team/uvtools
-git+https://github.com/HERA-Team/hera_pspec
-tensorflow_gpu
-tensorflow_cpu
 scikit-learn
 tqdm
+pyuvdata

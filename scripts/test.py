@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import argparse
 import copy, os, itertools, inspect
 from tqdm import tqdm
-from utils import load_dataset, normalize, denormalize
+from utils import load_dataset, normalize, plot_history_csv
 
 def load_data(filename):
     uvd = UVData()
@@ -21,9 +21,9 @@ def load_data(filename):
 
     return uvd, antpairpols
 
-def yeet():
-    data = np.load("data_real/544real_samples_512x512.npy")
-    np.save("1sample_real.npy", data[0])
+def plot_history():
+    input = 'logs/unet_1617565338_550_examples_5_masks_train_log.csv'
+    plot_history_csv(input, "with_norm.png")
 
 def yeet2():
     data = np.load("data/1617565338_550_examples_5_masks_dataset.npy")
@@ -46,7 +46,7 @@ def main():
     print("starting", flush=True)
     # filename = os.path.join('data_real', 'sample.uvh5')
     # uvd, antpairpols = load_data(filename)
-    yeet2()
+    plot_history()
 
     print("test.py complete.", flush=True)
 

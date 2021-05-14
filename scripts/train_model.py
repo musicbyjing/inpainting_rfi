@@ -9,7 +9,7 @@ from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger
 
 from models_unet import *
 from models_deep import *
-from utils import load_dataset, plot_loss, normalize, denormalize
+from utils import load_dataset, plot_loss, normalize
 
 def main():
     # tf stuff
@@ -32,7 +32,7 @@ def main():
     file_id = args.id
     batch_size=args.batch_size
     model_name = args.model
-    normalize = args.normalize
+    norm = args.normalize
     trim_all = args.trim_all
     save_test = args.no_save_test
     compile_only = args.compile_only
@@ -42,7 +42,7 @@ def main():
 
     # Load data
     data, labels = load_dataset(file_id)
-    if normalize:
+    if norm:
         data = normalize(data)
 
     # Get model

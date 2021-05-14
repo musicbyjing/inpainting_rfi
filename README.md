@@ -21,7 +21,6 @@ Then, create or import job files, and you're good to go!
 When logging in again, make sure to call
 ```
 source ~/HERA_ENV/bin/activate
-module load scipy-stack
 ```
 *BEFORE* running jobs--or alternately, include these lines in the job script.
 
@@ -54,14 +53,23 @@ module load scipy-stack
 
 ## `/scripts`
 
-- `crop_existing_dataset.py`: Given a dataset {data, labels} where each example is F (freq) x T (time), crop into D x D squares by taking the first D pixels in each dimension.
+- `crop_existing_dataset.py`: Given a dataset {data, labels} where each example is F (freq) x T (time), crops into D x D squares by taking the first D pixels in each dimension.
     - Usage: `python3 scripts/crop_existing_dataset.py --dim D --id ID`
-- `cut_existing_dataset.py`: Given a dataset where each example is F x T, divide each example into AB examples where each new example is F//B x T//A, where // denotes integer division.
+- `cut_existing_dataset.py`: Given a dataset where each example is F x T, divides each example into AB examples where each new example is F//B x T//A, where // denotes integer division.
     - Usage: `python3 scripts/cut_existing_dataset.py --id ID --divide-time-by A --divide-freq-by B`
-- `generate_dataset.py`: There are two components to a dataset: visibilities and masks. To use simulated visibilities, specify the number of examples to generate with `--n_examples`. Otherwise, specify a file with visibilities using `--from-vis` to use existing visibilities.
+- `generate_dataset.py`: Generates a dataset for training. There are two components to a dataset: visibilities and masks. To use simulated visibilities, specify the number of examples to generate with `--n_examples`. Otherwise, specify a file with visibilities using `--from-vis` to use existing visibilities.
     - Usage: 
         - `python3 scripts/generate_dataset.py --n_masks M --n_examples N` generates N *simulated* visibilities with M masks applied at random.
         - `python3 scripts/generate_dataset.py --n_masks M --from-vis data_real/FILE.npy` where `FILE` holds existing visibilities. This usage applies M masks at random over top of existing visibilities.
+- `load_real_data.py`: Loads real data and cut each image into as many D x D squares as possible.
+    - Usage: `python3 scripts/load_real_data.py --dim D`
+- `predict.py`: Takes a random image from the dataset specified by ID and generates predictions using MODEL. Use `--no-ground-truth` flag if running on real data.
+    - Usage: `python3 scripts/predict.py --id ID --model-name MODEL [--no-ground-truth]`
+- `train_model.py`: Trains an ML model on data.
+    - Usage: `python3 scripts/train_model.py --model [unet/colab/alex] --max_epochs E --id ID --batch_size B [--normalize]`
+
+- `models_X.py`: ML models
+- `utils.py`: utilities
 
 # Troubleshooting
 

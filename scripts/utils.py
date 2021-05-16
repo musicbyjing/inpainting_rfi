@@ -51,13 +51,13 @@ def normalize_over_all(data):
     data /= std
     return data
 
-# def denormalize(data, labels, mean, std):
-#     '''
-#     De-normalize
-#     '''
-#     data += mean
-#     data *= std
-#     return data, labels
+def denormalize_over_all(data, labels, mean, std):
+    '''
+    De-normalize
+    '''
+    data += mean
+    data *= std
+    return data
 
 def normalize_over_each(data):
     '''

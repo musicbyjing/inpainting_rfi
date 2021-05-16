@@ -22,10 +22,9 @@ def load_model(model_name, mask=None):
 
 def load_data(file_id):
     folder = "data"
-    data = np.load(os.path.join(folder, f"{file_id}_Xtest.npy"))
-    labels = np.load(os.path.join(folder, f"{file_id}_ytest.npy"))
-    masks = np.load(os.path.join(folder, f"{file_id}_masks.npy"))
-    return data, labels, masks
+    data = np.load(os.path.join(folder, f"{file_id}_dataset.npy"))
+    labels = np.load(os.path.join(folder, f"{file_id}_labels.npy"))
+    return data, labels
 
 def load_real_data(file_id):
     folder = "data_real"
@@ -35,7 +34,7 @@ def load_real_data(file_id):
 def predict(model, input):
     return model.predict(np.array([input, ]))[0] # since model.predict() needs an array
 
-def get_prediction(model, data, labels, masks, model_name, ground_truth):
+def get_prediction(model, data, labels, model_name, ground_truth):
     '''
     Get one prediction from Xtest and ytest
     '''
@@ -51,12 +50,12 @@ def get_prediction(model, data, labels, masks, model_name, ground_truth):
         plot_one_vis(labels[i], 2.5, 3, (7,7), "True", os.path.join(folder, f"{model_name}_true.png"))
     
         # Add unmasked part of original to prediction
-        mask = masks[i]
-        print("PRED", pred.shape)
-        print("MASK", mask.shape)
+        # mask = masks[i]
+        # print("PRED", pred.shape)
+        # print("MASK", mask.shape)
         # Something's wrong with the dimensions in the below line...
-        pred[:, :][mask == False] = data[i][:, :, :2][mask == False] # (1-mask)*og + mask*pred 
-        plot_one_vis(pred, 2.5, 3, (7,7), "Predicted, masked", os.path.join(folder, f"{model_name}_pred_masked.png"))
+        # pred[:, :][mask == False] = data[i][:, :, :2][mask == False] # (1-mask)*og + mask*pred 
+        # plot_one_vis(pred, 2.5, 3, (7,7), "Predicted, masked", os.path.join(folder, f"{model_name}_pred_masked.png"))
 
 
 ##############################
@@ -83,8 +82,8 @@ def main():
         data = load_real_data(file_id)
         get_prediction(model, data, None, None, model_name, ground_truth)
     else:
-        data, labels, masks = load_data(file_id)
-        get_prediction(model, data, labels, masks, model_name, ground_truth)
+        data, labels = load_data(file_id)
+        get_prediction(model, data, labels, model_name, ground_truth)
 
     # get predictions
     

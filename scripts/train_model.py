@@ -9,7 +9,7 @@ from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger
 
 from models_unet import *
 from models_deep import *
-from utils import load_dataset, plot_loss, normalize
+from utils import load_dataset, plot_loss, normalize_over_all, normalize_over_each
 
 def main():
     # tf stuff
@@ -22,7 +22,7 @@ def main():
     parser.add_argument("--id", type=str, help="ID of data to use for training")
     parser.add_argument("--batch_size", type=int, help="Batch size")
     parser.add_argument("--model", type=str, help="architecture to select. Current options are: colab, alex")
-    parser.add_argument("--normalize", default=False, action="store_true", help="Normalize data before sending into NN")
+    parser.add_argument("--normalize", type=str, n_args="*", help="Normalize data before sending into NN")
     parser.add_argument("--trim_all", default=False, action="store_true", help="trim data, labels, masks to 256x256 squares")
     parser.add_argument("--no-save-test", default=True, action="store_false", help="Run without saving generated Xtest and ytest sets")
     parser.add_argument("--compile_only", default=False, action="store_true", help="Quit after compiling and printing model")
@@ -42,8 +42,10 @@ def main():
 
     # Load data
     data, labels = load_dataset(file_id)
-    if norm:
-        data = normalize(data)
+    if norm == "all":
+        data = normalize_over_all(data)
+    if norm == "each":
+        data = normalize_over_each(data)
 
     # Get model
     model = None

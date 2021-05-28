@@ -224,9 +224,9 @@ def create_dataset(vis_list, mask_list, save, from_vis, three_channels):
         np.save(os.path.join("data", f"{prefix}_dataset_1sample.npy"), data[0])
         np.save(os.path.join("data", f"{prefix}_dataset.npy"), data)
         np.save(os.path.join("data", f"{prefix}_labels.npy"), labels)
-        np.save(os.path.join("data", f"{prefix}_masks.npy"), new_mask_list)
+        # np.save(os.path.join("data", f"{prefix}_masks.npy"), new_mask_list)
         
-        print("Dataset saved.")
+        print(f"Dataset saved as {prefix}_dataset.npy")
     print(f"Data shape: {data.shape}. Labels shape: {labels.shape}. Simulated masks shape: {new_mask_list.shape}")
 
 

@@ -4,16 +4,37 @@ import matplotlib.pyplot as plt
 import argparse
 import copy, os, itertools, inspect
 from tqdm import tqdm
+from utils import plot_one_vis
 
 def load_data(filename):
     uvd = UVData()
     uvd.read(filename) # By default, it would load all the baselines 
     print(uvd.data_array.shape) # (ntime*nbl, 1, nfreq, npol), so (182868, 1, 1024, 4)
     antpairpols = uvd.get_antpairpols() # all the baselines and polarizations in the file 
-    # print(f"Loaded data with {len(antpairpols)} antpairpols", flush=True)
-    # key = (0, 1, 'ee')
-    # image = uvd.get_data(key)
-    # mask = uvd.get_flags(key)
+
+    # check LSTs and freqs
+    # all_lsts = []
+    # for key in antpairpols:
+    #     lsts = uvd.get_times(key)
+    #     all_lsts.append((np.max(lsts), np.min(lsts)))
+    # print(all_lsts)
+    # print("MEAN", np.mean(np.array(all_lsts)))
+
+    # LST = np.unique(uvd.lst_array) * 12/np.pi #RA in hours
+    # print(LST)
+    # print(np.amax(LST) - np.amin(LST))
+    # print(uvd.lst_array)
+    # freq = uvd.freq_array[0] #freq in Hz
+    # print(np.amax(freq) - np.amin(freq))
+    # print(freq)
+
+
+    print(f"Loaded data with {len(antpairpols)} antpairpols", flush=True)
+    key = (37, 38, 'ee')
+    image = uvd.get_data(key)
+    mask = uvd.get_flags(key)
+
+    plot_one_vis(image, 2.5, 3, (7,7), "title", os.path.join("images", "sample_real_phase.png"))
 
     # np.save("image1.npy", image)
     # np.save("mask1.npy", mask)
@@ -144,13 +165,14 @@ def main():
     save = args.no_save
     
     # REAL
-    # print("starting", flush=True)
-    # filename = os.path.join('data_real', 'sample.uvh5')
-    # uvd, antpairpols = load_data(filename)
+    print("starting", flush=True)
+    filename = os.path.join('data_real', 'sample.uvh5')
+    uvd, antpairpols = load_data(filename)
+
     # crop_data(uvd, antpairpols, dim)
     
     # TEST
-    crop_data_test('3738ee', dim)
+    # crop_data_test('3738ee', dim)
 
     print("load_real_data.py complete.", flush=True)
 

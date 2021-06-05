@@ -64,9 +64,9 @@ def main():
 
     # Train-test split
     X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.2, random_state=42)
-    if save_test:
-        np.save(os.path.join("data", f"{file_id}_Xtest.npy"), X_test)
-        np.save(os.path.join("data", f"{file_id}_ytest.npy"), y_test)
+    # if save_test:
+        # np.save(os.path.join("data", f"{file_id}_Xtest.npy"), X_test)
+        # np.save(os.path.join("data", f"{file_id}_ytest.npy"), y_test)
     del data
     print("X_TRAIN", X_train.shape, "X_TEST", X_test.shape, "Y_TRAIN", y_train.shape, "Y_TEST", y_test.shape)
     

@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 import argparse
 import copy, os, itertools, inspect
 from tqdm import tqdm
-from utils import load_dataset, normalize, plot_history_csv
+from utils import load_dataset, plot_history_csv
+from crop_existing_dataset import crop_data
 
 def load_data(filename):
     uvd = UVData()
@@ -25,16 +26,48 @@ def plot_history():
     input = 'logs/unet_1617565338_550_examples_5_masks_train_log.csv'
     plot_history_csv(input, "with_norm.png")
 
-def yeet2():
-    data = np.load("data/1617565338_550_examples_5_masks_dataset.npy")
-    labels = np.load("data/1617565338_550_examples_5_masks_labels.npy")
-    print("data", data.shape)
-    data2 = np.zeros((10, data.shape[1], data.shape[2], data.shape[3]))
-    labels2 = np.zeros((10, labels.shape[1], labels.shape[2], labels.shape[3]))
-    data2 = data[:10, :, :, :]
-    labels2 = labels[:10, :, :, :]
-    np.save("1617565338_10_examples_5_masks_dataset.npy", data2)
-    np.save("1617565338_10_examples_5_masks_labels.npy", labels2)
+'''
+Extract one sample from a dataset and save it to the same place"
+'''
+def extract_one_sample(filepath):
+    data = np.load(filepath)
+    prefix, ext = os.path.splitext(filepath)
+    np.save(f"{prefix}_1sample{ext}", data[0])
+
+def extract_masks():
+    data = np.load("data/1616898929_544_examples_5_masks_dataset.npy")
+    masks = np.zeros((data.shape[0], data.shape[1], data.shape[2], 1))
+    masks = data[:, :, :, 2]
+    np.save("masks_from_1616898929_544_examples_5_masks.npy", masks)
+    print(masks.shape)
+
+'''
+Given an array of real samples, extract masks by getting the areas where data == 0
+'''
+def extract_masks_real():
+    data = np.load("data_real/544real_samples_512x512.npy")
+    masks = np.array([d[:,:,2] for d in data])
+    np.save("masks_real.npy", masks) # True -> masked
+    np.save("masks_real_1sample.npy", masks[0])
+
+'''
+Apply masks to data
+'''
+def apply_masks_to_data(data, masks):
+    # res = np.array([data[mask == True] = 0 for data, mask in zip(data, masks)]) 
+    res = []
+    for d, m in zip(data, masks):
+        print(d.shape)
+        print(m.shape)
+        d[:,:,:2][m == True] = 0
+        d[:,:,2][m == True] = 1
+        d[:,:,2][m == False] = 0
+        res.append(d)
+    print(len(res))
+    res = np.array(res)
+    np.save("vis_list_sim_544_with_applied_real_masks.npy", res)
+    np.save("vis_list_sim_544_with_applied_real_masks_1sample.npy", res[0])
+
 
 def test_norm():
     data, labels, _ = load_dataset("1616898929_544_examples_5_masks")
@@ -42,11 +75,15 @@ def test_norm():
     data_denorm, labels_denorm = denormalize(data_norm, labels_norm, mean, std)
     print(np.all(data == data_denorm))
 
+def crop():
+    data = np.load("vis_list.npy")
+    crop_data(data, data, 512, True, "sim_vis_no_rfi")
+
 def main():
     print("starting", flush=True)
     # filename = os.path.join('data_real', 'sample.uvh5')
     # uvd, antpairpols = load_data(filename)
-    plot_history()
+    apply_masks_to_data(np.load("data/sim_vis_no_rfi_CROPPED_512x512_dataset.npy"), np.load("masks_real.npy"))
 
     print("test.py complete.", flush=True)
 

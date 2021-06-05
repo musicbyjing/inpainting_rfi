@@ -51,16 +51,12 @@ source ~/HERA_ENV/bin/activate
 
 # Overview of files
 
-## `/scripts`
+## `/scripts/`
 
 - `crop_existing_dataset.py`: Given a dataset {data, labels} where each example is F (freq) x T (time), crops into D x D squares by taking the first D pixels in each dimension.
     - Usage: `python3 scripts/crop_existing_dataset.py --dim D --id ID`
 - `cut_existing_dataset.py`: Given a dataset where each example is F x T, divides each example into AB examples where each new example is F//B x T//A, where // denotes integer division.
     - Usage: `python3 scripts/cut_existing_dataset.py --id ID --divide-time-by A --divide-freq-by B`
-- `generate_dataset.py`: Generates a dataset for training. There are two components to a dataset: visibilities and masks. To use simulated visibilities, specify the number of examples to generate with `--n_examples`. Otherwise, specify a file with visibilities using `--from-vis` to use existing visibilities.
-    - Usage: 
-        - `python3 scripts/generate_dataset.py --n_masks M --n_examples N` generates N *simulated* visibilities with M masks applied at random.
-        - `python3 scripts/generate_dataset.py --n_masks M --from-vis data_real/FILE.npy` where `FILE` holds existing visibilities. This usage applies M masks at random over top of existing visibilities.
 - `load_real_data.py`: Loads real data and cut each image into as many D x D squares as possible.
     - Usage: `python3 scripts/load_real_data.py --dim D`
 - `predict.py`: Takes a random image from the dataset specified by ID and generates predictions using MODEL. Use `--no-ground-truth` flag if running on real data.
@@ -70,6 +66,28 @@ source ~/HERA_ENV/bin/activate
 
 - `models_X.py`: ML models
 - `utils.py`: utilities
+
+### `gen_data/`
+
+- `generate_dataset.py`: Generates a dataset for training. There are two components to a dataset: visibilities and masks.
+    1. Load a real HERA mask and get its dimensions (`get_dims_real_mask.py`).
+    2. Obtain masks
+        
+        - If we have an existing mask list, use the `--existing-masks` flag to specify its location.
+        
+        - Otherwise, generate simulated masks using the above dimensions (`generate_masks.py`).
+    3. Obtain visibilities
+
+        - If we have existing visibility plot list, use the `--existing-vis` flag to specify its location.
+
+        - Otherwise, generate simulated visibilities using the above dimensions (`generate_vis.py`).
+    
+    4. Apply the masks to the visibilities, resulting in a dataset that has dimensions (n_examples, times, freqs, 4) where the last dimension has the following channels: (real, imag, "masked area", "prediction area"). In cases where a simulated mask is applied over top of real data, the "masked area" is the area where the data is 0, while the "prediction area" is the simulated mask - "masked area".
+    
+    - Usage: 
+        - `python3 scripts/gen_data/generate_dataset.py --n_sim_masks M --n_examples N` generates N *simulated* visibilities with M *simulated* masks applied at random.
+        - `python3 scripts/gen_data/generate_dataset.py --n_sim_masks M --existing-vis data_real/DATA.npy` where `DATA.npy` holds existing visibilities. This usage applies M simulated masks at random over top of existing visibilities.
+        - `python3 scripts/gen_data/generate_dataset.py --existing-vis data_real/DATA.npy --existing-masks data_real/MASK.npy` applies masks from `MASK.npy` at random to visibilities in `DATA.npy`.
 
 # Troubleshooting
 

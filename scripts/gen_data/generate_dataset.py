@@ -80,7 +80,7 @@ def create_dataset(vis_list, mask_list, save, existing_vis, three_channels):
         np.save(os.path.join("data", f"{prefix}_labels.npy"), labels)
         
         print(f"Dataset saved as {prefix}_dataset.npy")
-    print(f"Data shape: {data.shape}. Labels shape: {labels.shape}.)
+    print(f"Data shape: {data.shape}. Labels shape: {labels.shape}.")
 
 
 ##############################
@@ -92,9 +92,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--n_examples", nargs='?', type=int, help="Number of examples to generate")
     parser.add_argument("--n_sim_masks", nargs='?', type=int,  help="Number of generated (simulated) masks")
-    parser.add_argument("--no-save", default=True, action="store_false", help="Use this flag to run tests without saving generated files to disk")
-    parser.add_argument("--existing-vis", nargs='?', default=None, help="Use this flag to create a dataset using existing visibilities")
-    parser.add_argument("--existing-masks", nargs='?', default=None, help="Use this flag to create a dataset using existing masks")
+    parser.add_argument("--no_save", default=True, action="store_false", help="Use this flag to run tests without saving generated files to disk")
+    parser.add_argument("--existing_vis", nargs='?', default=None, help="Use this flag to create a dataset using existing visibilities")
+    parser.add_argument("--existing_masks", nargs='?', default=None, help="Use this flag to create a dataset using existing masks")
+    parser.add_argument("--t_rx", nargs='?', default=150., help="t_rx parameter in noise generation")
     # parser.add_argument("--three-channels", default=False, action="store_true", help="Output data with 3 channels only (default 4). Useful when generating simulated data that will be double masked.")
     args = parser.parse_args()
 
@@ -103,6 +104,7 @@ def main():
     save = args.no_save
     existing_vis = args.existing_vis
     existing_masks = args.existing_masks
+    t_rx = args.t_rx
     # three_channels = args.three_channels
 
     # get dimensions
@@ -117,7 +119,7 @@ def main():
     if existing_vis is not None: # existing (real) visibilities
         vis_list = np.load(existing_vis)
     else: # need to simulate visibilities
-        vis_list = generate_simulated_vis_wrapper(n_examples, num_jd, start_freq, end_freq, num_reduced_channels)
+        vis_list = generate_simulated_vis_wrapper(n_examples, num_jd, start_freq, end_freq, num_reduced_channels, False, t_rx)
 
     # create dataset
     create_dataset(vis_list, mask_list, save, existing_vis, False)

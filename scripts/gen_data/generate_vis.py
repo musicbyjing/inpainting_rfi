@@ -13,7 +13,7 @@ from hera_sim import foregrounds, noise, sigchain, rfi, simulate
 ##### Generate simulated vis plots #####
 ########################################
 
-def generate_one_vis_plot(lsts, fqs, bl_len_ns):
+def generate_one_vis_plot(lsts, fqs, bl_len_ns, t_rx):
     '''
     Generate one visibility waterfall plot
     Returns a 2D (x,y) plot, as well as a channel-separated plot (x,y,2)
@@ -25,7 +25,7 @@ def generate_one_vis_plot(lsts, fqs, bl_len_ns):
 
     # noise
     tsky = noise.resample_Tsky(fqs,lsts,Tsky_mdl=noise.HERA_Tsky_mdl['xx'])
-    t_rx = 150.
+    # t_rx = 150.
 #     OMEGA_P = (0.72)*np.ones(1024) # from before; fraction of sky telescope is looking at; normalizes noise
     OMEGA_P = noise.bm_poly_to_omega_p(fqs) # default; from the hera_sim docs
     nos_jy = noise.sky_noise_jy(tsky + t_rx, fqs, lsts, OMEGA_P)
@@ -47,11 +47,11 @@ def generate_one_vis_plot(lsts, fqs, bl_len_ns):
     return vis, new_vis
 
 
-def generate_vis_plots(n, lsts, fqs, bl_len_ns):
+def generate_vis_plots(n, lsts, fqs, bl_len_ns, t_rx):
     '''
     Generate n visibility waterfall plots
     '''
-    temp = np.array([generate_one_vis_plot(lsts, fqs, bl_len_ns)[1] for i in range(n)]) # [1] to get separated vis
+    temp = np.array([generate_one_vis_plot(lsts, fqs, bl_len_ns, t_rx)[1] for i in range(n)]) # [1] to get separated vis
     print("TEMP", temp.shape)
     vis = np.ones((temp.shape[0], temp.shape[1], temp.shape[2], 3))
     vis[:, :, :, :2] = temp
@@ -59,11 +59,11 @@ def generate_vis_plots(n, lsts, fqs, bl_len_ns):
     return vis
 
 
-def generate_simulated_vis_wrapper(n_examples, num_jd, start_freq, end_freq, num_reduced_channels, save):
+def generate_simulated_vis_wrapper(n_examples, num_jd, start_freq, end_freq, num_reduced_channels, save, t_rx=150.):
     '''
     Wrapper for generating simulated visibility plots.
     Output: list of visibility waterfall plot of size: (n_examples, freq, time, 3)
-    where the last channel is (real, imag, EMPTY)
+    where the last channel is (real, imag, EMPTY) -- EMPTY because there's no areas with missing data
     '''
     # set up visibility parameters
     lsts = np.linspace(0, 0.5*np.pi, num_jd, endpoint=False) # local sidereal times; start range, stop range, number of snapshots
@@ -73,7 +73,7 @@ def generate_simulated_vis_wrapper(n_examples, num_jd, start_freq, end_freq, num
     bl_len_ns = np.array([48.73,0,0]) # ENU coordinates # ORIGINALLY 30
 
     # generate vis list and masks
-    vis_list = generate_vis_plots(n_examples, lsts, fqs, bl_len_ns)
+    vis_list = generate_vis_plots(n_examples, lsts, fqs, bl_len_ns, t_rx)
 
     if save:
         prefix = f"{int(time.time())}_{len(vis_list)}_examples_visibilities"

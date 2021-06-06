@@ -73,21 +73,22 @@ source ~/HERA_ENV/bin/activate
     1. Load a real HERA mask and get its dimensions (`get_dims_real_mask.py`).
     2. Obtain masks
         
-        - If we have an existing mask list, use the `--existing-masks` flag to specify its location.
+        - If we have an existing mask list, use the `--existing_masks` flag to specify its location.
         
         - Otherwise, generate simulated masks using the above dimensions (`generate_masks.py`).
     3. Obtain visibilities
 
-        - If we have existing visibility plot list, use the `--existing-vis` flag to specify its location.
+        - If we have existing visibility plot list, use the `--existing_vis` flag to specify its location.
 
         - Otherwise, generate simulated visibilities using the above dimensions (`generate_vis.py`).
     
-    4. Apply the masks to the visibilities, resulting in a dataset that has dimensions (n_examples, times, freqs, 4) where the last dimension has the following channels: (real, imag, "masked area", "prediction area"). In cases where a simulated mask is applied over top of real data, the "masked area" is the area where the data is 0, while the "prediction area" is the simulated mask - "masked area".
+    4. Apply the masks to the visibilities, resulting in a dataset that has dimensions (n_examples, times, freqs, 4). The last dimension has the following channels: (real, imag, M, P) where M is a binary mask representing areas with missing data in channels 1 and 2, and P is the prediction area. 
+        - In cases where a simulated mask is applied over top of real data (with real masks), M is the area where the real data is 0, while the P is the simulated mask - real mask.
     
     - Usage: 
         - `python3 scripts/gen_data/generate_dataset.py --n_sim_masks M --n_examples N` generates N *simulated* visibilities with M *simulated* masks applied at random.
-        - `python3 scripts/gen_data/generate_dataset.py --n_sim_masks M --existing-vis data_real/DATA.npy` where `DATA.npy` holds existing visibilities. This usage applies M simulated masks at random over top of existing visibilities.
-        - `python3 scripts/gen_data/generate_dataset.py --existing-vis data_real/DATA.npy --existing-masks data_real/MASK.npy` applies masks from `MASK.npy` at random to visibilities in `DATA.npy`.
+        - `python3 scripts/gen_data/generate_dataset.py --n_sim_masks M --existing_vis data_real/DATA.npy` where `DATA.npy` holds existing visibilities. This usage applies M simulated masks at random over top of existing visibilities.
+        - `python3 scripts/gen_data/generate_dataset.py --existing_vis data_real/DATA.npy --existing_masks data_real/MASK.npy` applies masks from `MASK.npy` at random to visibilities in `DATA.npy`.
 
 # Troubleshooting
 

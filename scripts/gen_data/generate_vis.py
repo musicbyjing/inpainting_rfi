@@ -75,6 +75,7 @@ def generate_simulated_vis_wrapper(n_examples, num_jd, start_freq, end_freq, num
     # generate vis list and masks
     vis_list = generate_vis_plots(n_examples, lsts, fqs, bl_len_ns, t_rx)
 
+    prefix = ""
     if save:
         prefix = f"{int(time.time())}_{len(vis_list)}_examples_visibilities"
         np.save(os.path.join("visibilities", f"{prefix}_1sample.npy"), vis_list[0])
@@ -83,7 +84,27 @@ def generate_simulated_vis_wrapper(n_examples, num_jd, start_freq, end_freq, num
         print(f"Dataset saved as {prefix}.npy")
     print(f"Data shape: {vis_list.shape}.")
 
-    return vis_list
+    return vis_list, prefix
+
+
+def crop_vis(vis_list, dim, save):
+    '''
+    Crop visibility list into dim x dim squares
+    '''
+    l, m, n, channels_data = vis_list.shape[0:4] # l is length, m is # rows, n is # cols
+
+    vis_list_new = np.zeros((l, dim, dim, channels_data))
+    for i in range(l):
+        vis_list_new[i] = vis_list[i, :dim, :dim, :]
+
+    if save:
+        prefix = f"{file_id}_CROPPED_{dim}x{dim}"
+        np.save(os.path.join("visibilities", f"{prefix}_dataset.npy"), vis_list_new)
+        print("Modified dataset saved.")
+
+    print(f"Vis list cropped shape: {vis_list_new.shape}.")
+
+    return vis_list_new
 
 
 ##############################
@@ -95,11 +116,12 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--n_examples", type=int, help="Number of examples to generate")
     parser.add_argument("--num_jd", type=int, default=1500, help="Number of time samples")
-    parser.add_argument("--num_channels", type=int, default=0.10927734375, help="Number of freq channels")
-    parser.add_argument("--start_freq", type=int, default=0.18916015625, help="Start frequency")
-    parser.add_argument("--end_freq", type=int, default=818, help="End frequency")
+    parser.add_argument("--num_channels", type=int, default=818, help="Number of frequency samples")
+    parser.add_argument("--start_freq", type=int, default=0.10927734375, help="Start frequency")
+    parser.add_argument("--end_freq", type=int, default=0.18916015625, help="End frequency")
     # default numbers come from a run on a real mask from Saurabh
 
+    parser.add_argument("--t_rx", type=float, default=150., help="t_rx parameter")
     parser.add_argument("--no-save", default=True, action="store_false", help="Use this flag to run tests without saving generated files to disk")
     args = parser.parse_args()
 
@@ -109,9 +131,10 @@ def main():
     start_freq = args.start_freq
     end_freq = args.end_freq
     save = args.no_save
+    t_rx = args.t_rx
 
     # get visibilities
-    _ = generate_simulated_vis_wrapper(n_examples, num_jd, start_freq, end_freq, num_channels, save)
+    _, _ = generate_simulated_vis_wrapper(n_examples, num_jd, start_freq, end_freq, num_channels, save, t_rx)
 
     print("generate_vis.py complete.")
 

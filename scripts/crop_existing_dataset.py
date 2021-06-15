@@ -3,7 +3,7 @@ import os
 import argparse
 import sys
 
-from utils import load_dataset, plot_one_vis, plot_one_mask
+# from utils import load_dataset, plot_one_vis, plot_one_mask
 
 def crop_data(data, labels, dim, save, file_id):
     '''
@@ -27,6 +27,8 @@ def crop_data(data, labels, dim, save, file_id):
         print("Modified dataset saved.")
 
     print(f"Data shape: {data_new.shape}. Labels shape: {labels_new.shape}.")
+
+    return data_new, labels_new
 
 ##############################
 ##### main function #####
@@ -52,7 +54,7 @@ def main():
     # print("MASK", mask.shape)
     # mask_list = np.repeat(mask, data.shape[0], axis=0)
 
-    crop_data(data, labels, dim, save, file_id)
+    _, _ = crop_data(data, labels, dim, save, file_id)
     
     print("cut_existing_dataset.py has completed.")
 

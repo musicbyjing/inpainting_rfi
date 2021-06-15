@@ -11,6 +11,17 @@ def load_data(filename):
     uvd.read(filename) # By default, it would load all the baselines 
     print(uvd.data_array.shape) # (ntime*nbl, 1, nfreq, npol), so (182868, 1, 1024, 4)
     antpairpols = uvd.get_antpairpols() # all the baselines and polarizations in the file 
+    print(f"Loaded data with {len(antpairpols)} antpairpols", flush=True)
+    # print("ANTPAIRPOLS:")
+    # print(antpairpols)
+
+    # baseline_groups, vec_bin_centers, lengths = uvd.get_redundancies()
+    # print(baseline_groups)
+    # print(vec_bin_centers)
+    # print(lengths)
+
+
+
 
     # check LSTs and freqs
     # all_lsts = []
@@ -29,16 +40,34 @@ def load_data(filename):
     # print(freq)
 
 
-    print(f"Loaded data with {len(antpairpols)} antpairpols", flush=True)
-    key = (37, 38, 'ee')
-    image = uvd.get_data(key)
-    mask = uvd.get_flags(key)
 
-    plot_one_vis(image, 2.5, 3, (7,7), "title", os.path.join("images", "sample_real_phase.png"))
+    # key = (37, 38, 'ee')
+    # image = uvd.get_data(key)
+    # mask = uvd.get_flags(key)
+
+    # plot_one_vis(image, 2.5, 3, (7,7), "title", os.path.join("images", "sample_real_phase.png"))
 
     # np.save("image1.npy", image)
     # np.save("mask1.npy", mask)
     return uvd, antpairpols
+
+def show_all_masks(uvd, antpairpols):
+    '''
+    '''
+    n = len(antpairpols)
+    if n % 2 != 0:
+        n += 1
+    fig, axs = plt.subplots(n//2, n//(n//2), figsize=(100, 100), facecolor='w', edgecolor='k')
+    fig.subplots_adjust(hspace = .5, wspace=.001)
+
+    axs = axs.ravel()
+
+    for i, key in enumerate(antpairpols):
+        mask = uvd.get_flags(key)
+        axs[i].imshow(mask)
+        axs[i].set_title(str(key))
+    
+    fig.savefig("images/all_masks.png", dpi=300)
 
 
 def crop_data(uvd, antpairpols, dim):
@@ -168,6 +197,7 @@ def main():
     print("starting", flush=True)
     filename = os.path.join('data_real', 'sample.uvh5')
     uvd, antpairpols = load_data(filename)
+    show_all_masks(uvd, antpairpols)
 
     # crop_data(uvd, antpairpols, dim)
     

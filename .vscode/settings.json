@@ -1,3 +1,8 @@
 {
-    "python.pythonPath": "/home/jingliu6/HERA_ENV_3.8.2/bin/python3"
+    "python.pythonPath": "/home/jingliu6/HERA_ENV_3.8.2/bin/python3",
+    "python.linting.pylintEnabled": false,
+    "python.linting.enabled": true,
+    "python.formatting.provider": "autopep8",
+    "python.linting.pylamaEnabled": true,
+    "python.linting.banditEnabled": false
 }

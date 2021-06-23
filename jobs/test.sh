@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --account=def-acliu
-#SBATCH --time=0-00:10
+#SBATCH --time=0-00:30
 #SBATCH --mem=32G
 #SBATCH --mail-user=jing.liu6@mail.mcgill.ca
 #SBATCH --mail-type=ALL

@@ -68,6 +68,19 @@ def apply_masks_to_data(data, masks):
     np.save("vis_list_sim_544_with_applied_real_masks.npy", res)
     np.save("vis_list_sim_544_with_applied_real_masks_1sample.npy", res[0])
 
+'''
+Plot scatter of labels vs. predictions
+'''
+def scatter(label, pred):
+    pred_area = label[:, :, 3].astype(int) # prediction area
+    x = label[:,:,:2][pred_area]
+    y = pred[pred_area]
+    print(x.shape, y.shape)
+    plt.scatter(x.real.flatten()[::5], y.real.flatten()[::5], alpha=0.1)
+    plt.savefig(os.path.join("images", f"real_scatter.png"))
+    plt.scatter(x.imag.flatten()[::5], y.imag.flatten()[::5], alpha=0.1)
+    plt.savefig(os.path.join("images", f"imag_scatter.png"))
+
 
 def test_norm():
     data, labels, _ = load_dataset("1616898929_544_examples_5_masks")
@@ -83,7 +96,7 @@ def main():
     print("starting", flush=True)
     # filename = os.path.join('data_real', 'sample.uvh5')
     # uvd, antpairpols = load_data(filename)
-    apply_masks_to_data(np.load("data/sim_vis_no_rfi_CROPPED_512x512_dataset.npy"), np.load("masks_real.npy"))
+    scatter(np.load("images/unet_1623596629_555_examples_5_masks_trx1500_weights_best.hdf5_true.npy"), np.load("images/unet_1623596629_555_examples_5_masks_trx1500_weights_best.hdf5_pred.npy"))
 
     print("test.py complete.", flush=True)
 

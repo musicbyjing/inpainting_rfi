@@ -1,7 +1,16 @@
 from tensorflow import keras
 from tensorflow.keras.callbacks import ModelCheckpoint
 
-from utils import masked_MSE
+from models.utils import masked_MSE
+from models.dss_layers import *
+
+def build_and_compile_DSS():
+    model = keras.Sequential([
+        Conv2dDeepSym(4, 4, 3),
+        keras.layers.Dense(256, activation='relu'),
+        keras.layers.Dense(2)
+    ])
+
 
 def build_and_compile_model():
     model = keras.Sequential([

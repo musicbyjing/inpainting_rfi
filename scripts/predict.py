@@ -4,11 +4,11 @@ import os
 import argparse
 import random
 
-import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import backend as K
 
-from utils import plot_one_vis, masked_MSE, masked_MSE_multiple_masks
+from utils import plot_one_vis
+from models.utils import masked_MSE, masked_MSE_multiple_masks
 
 ### Currently, chooses a random image from X_test and makes a prediction. 
 ### Saves the original, predicted, and ground truth as png's.
@@ -113,7 +113,7 @@ def main():
     if ground_truth:
         data, labels = load_data(file_id)
         one_data, one_pred, one_label = get_prediction(model, data, labels, model_name, ground_truth)
-        plot_scatter(one_label, one_pred, model_name)
+        # plot_scatter(one_label, one_pred, model_name)
     else:
         data = load_real_data(file_id)
         _, _ = get_prediction(model, data, None, None, model_name, ground_truth)

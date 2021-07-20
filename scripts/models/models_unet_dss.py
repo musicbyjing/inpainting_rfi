@@ -6,7 +6,8 @@ from tensorflow.keras.optimizers import *
 from tensorflow.keras.callbacks import ModelCheckpoint, LearningRateScheduler
 from tensorflow.keras import backend as keras
 
-from utils import masked_MSE, masked_MSE_multiple_masks
+from models.dss_layers import Conv2dDeepSym
+from models.utils import masked_MSE, masked_MSE_multiple_masks
 
 def unet(input_size, pretrained_weights = None):
     inputs = Input(input_size)

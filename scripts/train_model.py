@@ -7,8 +7,8 @@ from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger
 
-from models_unet import *
-from models_deep import *
+from models.models_unet import *
+from models.models_deep import *
 from utils import load_dataset, plot_loss, normalize_over_all, normalize_over_each
 
 def main():

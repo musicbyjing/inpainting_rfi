@@ -195,9 +195,10 @@ def main():
     
     # REAL
     print("starting", flush=True)
-    filename = os.path.join('data_real', 'sample.uvh5')
+    filename = os.path.join('data_real', '2458098.uvh5')
     uvd, antpairpols = load_data(filename)
-    show_all_masks(uvd, antpairpols)
+    print(len(antpairpols))
+    # show_all_masks(uvd, antpairpols)
 
     # crop_data(uvd, antpairpols, dim)
     

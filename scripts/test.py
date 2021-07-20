@@ -12,7 +12,7 @@ def load_data(filename):
     uvd.read(filename) # By default, it would load all the baselines 
     print(uvd.data_array.shape) # (ntime*nbl, 1, nfreq, npol), so (182868, 1, 1024, 4)
     antpairpols = uvd.get_antpairpols() # all the baselines and polarizations in the file 
-    print(f"Loaded data with {len(antpairpols)} antpairpols", flush=True)
+    print(f"Loaded {filename} with {len(antpairpols)} antpairpols", flush=True)
 
     baseline_groups, vec_bin_centers, lengths = uvd.get_redundancies()
     print("BASELINE GROUPS")
@@ -92,11 +92,41 @@ def crop():
     data = np.load("vis_list.npy")
     crop_data(data, data, 512, True, "sim_vis_no_rfi")
 
+def make_rimez_trainable():
+    data = np.load("data/not_masked_RIMEz_dataset.npy")
+    data_new = np.zeros((*data.shape[:3], 3))
+    print(data.shape)
+    for i in range(len(data)):
+        print(data[i].shape)
+        reverse = np.logical_not(data[i][:, :, 3]) # reverse mask
+        data_new[i][:, :, :2] = data[i][:, :, :2]
+        data_new[i][:, :, 2] = reverse
+    np.save("RIMEz_vis.npy", data_new)
+    np.save("RIMEz_vis_1sample.npy", data_new[14])
+    print(data.shape)
+
+def yeet():
+    data = np.load("data/1624637389_216_examples_5_masks_MOD_dataset.npy")
+    labels = np.load("data/1624637389_216_examples_5_masks_MOD_labels.npy")
+    # data[data == -np.inf] = 0
+    # labels[labels == -np.inf] = 0
+    for d, l in zip(data, labels):
+        print(np.unique(d))
+        print(np.unique(l))
+    # np.save("data/1624637389_216_examples_5_masks_MOD_dataset.npy", data)
+    # np.save("data/1624637389_216_examples_5_masks_MOD_dataset_1sample.npy", data[15])
+    # np.save("data/1624637389_216_examples_5_masks_MOD_labels.npy", labels)
+
+def plot_history():
+    plot_history_csv("logs/unet_1624637389_216_examples_5_masks_MOD_train_log.csv", "images/unet_1624637389_216_examples_5_masks_MOD_curves.png")
+
+
 def main():
     print("starting", flush=True)
-    # filename = os.path.join('data_real', 'sample.uvh5')
-    # uvd, antpairpols = load_data(filename)
-    scatter(np.load("images/unet_1623596629_555_examples_5_masks_trx1500_weights_best.hdf5_true.npy"), np.load("images/unet_1623596629_555_examples_5_masks_trx1500_weights_best.hdf5_pred.npy"))
+    _, _ = load_data("data_real/2458103.uvh5")
+    _, _ = load_data("data_real/2458108.uvh5")
+    _, _ = load_data("data_real/2458112.uvh5")
+    _, _ = load_data("data_real/2458115.uvh5")
 
     print("test.py complete.", flush=True)
 

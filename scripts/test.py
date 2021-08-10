@@ -105,29 +105,82 @@ def make_rimez_trainable():
     np.save("RIMEz_vis_1sample.npy", data_new[14])
     print(data.shape)
 
+def crop_center(img,cropx,cropy):
+    y,x,_ = img.shape
+    startx = x//2-(cropx//2)
+    starty = y//2-(cropy//2)    
+    return img[starty:starty+cropy,startx:startx+cropx]
+
 def yeet():
     data = np.load("data/1624637389_216_examples_5_masks_MOD_dataset.npy")
     labels = np.load("data/1624637389_216_examples_5_masks_MOD_labels.npy")
-    # data[data == -np.inf] = 0
-    # labels[labels == -np.inf] = 0
-    for d, l in zip(data, labels):
-        print(np.unique(d))
-        print(np.unique(l))
-    # np.save("data/1624637389_216_examples_5_masks_MOD_dataset.npy", data)
-    # np.save("data/1624637389_216_examples_5_masks_MOD_dataset_1sample.npy", data[15])
-    # np.save("data/1624637389_216_examples_5_masks_MOD_labels.npy", labels)
+
+    d = []
+    d.append(data[:5])
+    d.append(data[5:10])
+    d.append(data[10:15])
+    l = []
+    l.append(labels[:5])
+    l.append(labels[5:10])
+    l.append(labels[10:15])
+
+    np.save("color_matching_exp/dataset.npy", np.array(d))
+    np.save("color_matching_exp/labels.npy", np.array(l))
 
 def plot_history():
     plot_history_csv("logs/unet_1624637389_216_examples_5_masks_MOD_train_log.csv", "images/unet_1624637389_216_examples_5_masks_MOD_curves.png")
 
+def yeet2():
+    data = np.load("color_matching_exp/dataset.npy")
+    labels = np.load("color_matching_exp/labels.npy")
+    data2 = []
+    labels2 = []
+    for d, l in zip(data, labels):
+        d2 = []
+        for im in d:
+            d2.append(crop_center(im, 64, 64))
+        data2.append(d2)
+        l2 = []
+        for im in l:
+            l2.append(crop_center(im, 64, 64))
+        labels2.append(l2)
+    print(np.array(data2).shape)
+    np.save("color_matching_exp/dataset_64x64.npy", np.array(data2))
+    np.save("color_matching_exp/labels_64x64.npy", np.array(labels2))
+
+
+def yeet3():
+    sets = np.load("sets/(0, 1, 'ee')_unshifted.npy")
+    ref = sets[0]
+    s = 623
+    image_fft = np.pad(sets[1], [(s,0), (0, 0)], mode='constant')[:-s, :]
+    s2 = 113
+    image_conv = np.pad(sets[1], [(s2,0), (0, 0)], mode='constant')[:-s2, :]
+
+    frac_err1 = frac_error(image_fft, ref)
+    frac_err2 = frac_error(image_conv, ref)
+
+    plt.figure(figsize=(10,10))
+    plt.hist(frac_err1, density=True, bins=40000)
+    plt.savefig("images/fft_error_total.png")
+    plt.figure(figsize=(10,10))
+    plt.hist(frac_err2, density=True, bins=40000)
+    plt.savefig("images/conv_error_total.png")
+
+
+def frac_error(im, ref):
+    res = []
+    for i, r in zip(im, ref):
+        res.append(np.abs(i-r)/r)
+    return res
+
+plt.legend()
+
+
 
 def main():
     print("starting", flush=True)
-    _, _ = load_data("data_real/2458103.uvh5")
-    _, _ = load_data("data_real/2458108.uvh5")
-    _, _ = load_data("data_real/2458112.uvh5")
-    _, _ = load_data("data_real/2458115.uvh5")
-
+    yeet3()
     print("test.py complete.", flush=True)
 
         

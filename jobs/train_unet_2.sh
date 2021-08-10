@@ -12,4 +12,4 @@ nvidia-smi
 source ~/HERA_ENV_2/bin/activate
 # module load scipy-stack
 module load cuda cudnn
-python3 scripts/train_model.py --model unet --max_epochs 5000 --id 1623597641_555_examples_5_masks_trx5000 --batch_size 8 --normalize each
+python3 scripts/train_model.py --model unet --max_epochs 1000 --id 1624637389_216_examples_5_masks_MOD --batch_size 8 --normalize all

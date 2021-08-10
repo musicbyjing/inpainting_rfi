@@ -3,3 +3,4 @@ git+https://github.com/HERA-Team/uvtools
 scikit-learn
 tqdm
 pyuvdata
+torchvision

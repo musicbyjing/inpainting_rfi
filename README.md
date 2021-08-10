@@ -13,6 +13,7 @@ virtualenv --no-download ~/HERA_ENV
 source ~/HERA_ENV/bin/activate
 pip install -r requirements.txt
 pip install --no-index tensorflow
+pip install --no-index torch
 ```
 Then, create or import job files, and you're good to go!
 

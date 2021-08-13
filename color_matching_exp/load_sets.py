@@ -16,6 +16,7 @@ def load_all_data():
     night3 = load_data("3-2458108.uvh5")
     night4 = load_data("4-2458112.uvh5")
     night5 = load_data("5-2458115.uvh5")
+    # the filenames (along with night 1, night 2, etc.) are arbitrary
     return night1, night2, night3, night4, night5, antpairpols
 
 def load_data(filename, antpairpols=False):
@@ -107,25 +108,6 @@ def fft_conv(img_to_shift, ref_img):
     idx = nrows // 3
     return np.fft.ifft(fft_prod, axis=0)[idx:idx+nrows, :]
     
-
-def apply_shifts(images, shifts):
-    '''
-    Apply shifts to images and return a new array of shifted images
-    '''
-    res = []
-    for image, shift in zip(images, shifts):
-        if shift == 0:
-            img_new = image
-        elif shift < 0:
-            shift = -shift
-            img_new = np.pad(image, [(0,shift), (0,0)], mode='constant')[shift:, :]
-        else:
-            img_new = np.pad(image, [(shift,0), (0, 0)], mode='constant')[:-shift, :]
-        res.append(img_new)
-    return res
-    
-
-
 def main():
     # cmd line arguments
     parser = argparse.ArgumentParser()
@@ -173,6 +155,7 @@ def main():
 
     np.savetxt("sets/all_shifts.csv", all_shifts, delimiter=",")
 
+    all_sets = np.array(all_sets)
     np.save(f"sets/ALL_SETS.npy", all_sets)
     print("ALL_SETS.npy saved with shape ", all_sets.shape)
     print("load_real_data.py complete.", flush=True)

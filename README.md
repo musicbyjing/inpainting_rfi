@@ -2,7 +2,7 @@
 
 A project to inpaint radio frequency interference (RFI) in telescope data. For PHYS 489 Winter 2021, McGill University.
 
-# Requirements:
+# Requirements
 
 ## Create an environment 
 
@@ -23,9 +23,7 @@ When logging in again, make sure to call
 ```
 source ~/HERA_ENV/bin/activate
 ```
-*BEFORE* running jobs--or alternately, include these lines in the job script.
-
-(To deactivate a virtual environment, simply call `deactivate`.)
+*BEFORE* running jobs--or alternately, include these lines in the job script. (To deactivate a virtual environment, simply call `deactivate`.)
 
 # Terminology
 
@@ -35,24 +33,43 @@ source ~/HERA_ENV/bin/activate
 
 # Workflow
 
-## Creating a simulated dataset
+## Using individual images
+
+### Creating a simulated dataset
 
 1. Run `gen_data.sh` to create a simulated dataset with simulated masks.
 2. Run `crop_data.sh` to crop the dataset to squares for easier training.
 
-## Creating a real dataset
+### Creating a real dataset
 
 1. Run `load_real_data.sh` to cut a `pyuvdata` file into as many `dim` x `dim` squares as possible, stored in `{n}real_samples_{dim}x{dim}.npy`. These real visibility plots will have real RFI masks.
 2. Pass the above's output to `gen_data.sh` with the `--from-vis` flag, which creates a dataset that adds on simulated masks.
 
-## Training
+### Training
 
 1. Run the finished dataset through `train_unet.sh`.
 2. See results using `predict.sh`.
 
+## Using sets of images
+
+No established workflow yet!
+
 # Overview of files
 
-## `/scripts/`
+## **NEW** - `color_matching_exp/`
+
+This code was copied from the folder with the same name from the [DSS paper](https://github.com/Haggaim/On-Learning-Sets-of-Symmetric-Elements). Briefly, their U-Net accepts sets of data of size 64x64 whereby each image in a set is a differently-colored version of the ground truth image. The U-Net uses these images to reproduce the original. In the paper, "color matching" is one of many experiments they conducted; if this network doesn't work, there are many others to choose from.
+
+### Implemented changes:
+- `models.py`: Expanded the U-Net's upconv and pooling layers to accept 512x512 sized images
+- Created `run.py`: select and run a network
+- Created `load_sets.py`: load `.uvh5` files across 5 nights and, using an arbitrarily-defined Night 1 as reference, calculate the minimum shift for each antenna pair such that the total distance from each shifted image to the Night 1 reference is minimized. This calculation can be done via FFT or regular convolution. The shifts are then returned.
+- Created `shift_sets.py`: apply shifts to sets of images and crop as needed.
+
+### To-do:
+- Create a simulated dataset with ground truths to train on, before passing in 
+
+## `scripts/`
 
 - `crop_existing_dataset.py`: Given a dataset {data, labels} where each example is F (freq) x T (time), crops into D x D squares by taking the first D pixels in each dimension.
     - Usage: `python3 scripts/crop_existing_dataset.py --dim D --id ID`
@@ -68,7 +85,7 @@ source ~/HERA_ENV/bin/activate
 - `models_X.py`: ML models
 - `utils.py`: utilities
 
-### `gen_data/`
+### `scripts/gen_data/`
 
 - `generate_dataset.py`: Generates a dataset for training. There are two components to a dataset: visibilities and masks.
     1. Load a real HERA mask and get its dimensions (`get_dims_real_mask.py`).
@@ -90,6 +107,7 @@ source ~/HERA_ENV/bin/activate
         - `python3 scripts/gen_data/generate_dataset.py --n_sim_masks M --n_examples N` generates N *simulated* visibilities with M *simulated* masks applied at random.
         - `python3 scripts/gen_data/generate_dataset.py --n_sim_masks M --existing_vis data_real/DATA.npy` where `DATA.npy` holds existing visibilities. This usage applies M simulated masks at random over top of existing visibilities.
         - `python3 scripts/gen_data/generate_dataset.py --existing_vis data_real/DATA.npy --existing_masks data_real/MASK.npy` applies masks from `MASK.npy` at random to visibilities in `DATA.npy`.
+
 
 # Troubleshooting
 

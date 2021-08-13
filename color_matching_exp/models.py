@@ -119,7 +119,9 @@ class UNet(nn.Module):
         self.model_type = model_type
 
         if self.model_type =='deepsets' or self.model_type == 'Sridhar':
-            c = (4, 64, 128, 200, 300)
+            # c = (4, 8, 16, 32, 64, 128, 200, 300) # initially: (4, 64, 128, 200, 300)
+            c = (4, 64, 128, 200, 300, 128, 200, 300) # initially: (4, 64, 128, 200, 300)
+            ####################### WAS MESSING WITH THIS LINE TO TRY TO MAKE IT WORK ######################
         elif model_type == 'Aittala':
             c = (4, 150, 200, 300, 320)
         elif model_type == 'DeepSymmetricNet':
@@ -129,6 +131,11 @@ class UNet(nn.Module):
         self.dconv_down2 = double_conv(c[1], c[2],self.model_type,p_drop,use_max=use_max)
         self.dconv_down3 = double_conv(c[2], c[3],self.model_type,p_drop,use_max=use_max)
         self.dconv_down4 = double_conv(c[3], c[4],self.model_type,p_drop,use_max=use_max)
+        # Below added by me
+        self.dconv_down5 = double_conv(c[4], c[5],self.model_type,p_drop,use_max=use_max)
+        self.dconv_down6 = double_conv(c[5], c[6],self.model_type,p_drop,use_max=use_max)
+        self.dconv_down7 = double_conv(c[6], c[7],self.model_type,p_drop,use_max=use_max)
+        #
 
         self.maxpool2 = SetMaxPool2d(stride=2)
         self.maxpool8 = SetMaxPool2d(stride=8)
@@ -141,44 +148,85 @@ class UNet(nn.Module):
         self.dconv_up3 = double_conv(c[4] + c[4], c[3],self.model_type,p_drop,use_max=use_max)
         self.dconv_up2 = double_conv(c[3] + c[3], c[2],self.model_type,p_drop,use_max=use_max)
         self.dconv_up1 = double_conv(c[2] + c[2], c[2],self.model_type,p_drop,use_max=use_max)
+        # Below added by me
+        self.dconv_up6 = double_conv(c[7] + c[7], c[6],self.model_type,p_drop,use_max=use_max)
+        self.dconv_up5 = double_conv(c[6] + c[6], c[5],self.model_type,p_drop,use_max=use_max)
+        self.dconv_up4 = double_conv(c[5] + c[5], c[4],self.model_type,p_drop,use_max=use_max)
+        #
 
         self.last_conv = last_conv(self.model_type,c,use_max=use_max)
 
 
     def forward(self, x):
+        
         conv1 = self.dconv_down1(x)
-        x = self.maxpool2(conv1) #32
+        x = self.maxpool2(conv1) # prev 32, now 256
+        print("1", x.shape)
 
         conv2 = self.dconv_down2(x)
-        x = self.maxpool2(conv2) #16
+        x = self.maxpool2(conv2) # prev 16, now 128
+        print("2", x.shape)
 
         conv3 = self.dconv_down3(x)
-        x = self.maxpool2(conv3) #8
+        x = self.maxpool2(conv3) # prev 8, now 64
+        print("3", x.shape)
 
         conv4 = self.dconv_down4(x)
-        x = self.maxpool8(conv4)
+        x = self.maxpool2(conv4) # prev 1 (END), now 32
+        print("4", x.shape)
 
+        conv5 = self.dconv_down5(x)
+        x = self.maxpool2(conv5) # 16
+        print("5", x.shape) 
+        
+        conv6 = self.dconv_down6(x)
+        x = self.maxpool2(conv6) # 8
+        print("6", x.shape)
+        
+        conv7 = self.dconv_down7(x)
+        x = self.maxpool8(conv7) # 1
+        print("7", x.shape)
+        
         # deep sets block
-        print("BEFORE SQUEEZE", x.size())
+        print("BEFORE SQUEEZE", x.size()) # should be (1, 5, x, 1, 1)
         x = x.squeeze(dim=4)
         x = x.squeeze(dim=3)
         print("AFTER SQUEEZE", x.size())
         x = self.feature_processing_block(x)
         x = x.unsqueeze(dim=3).unsqueeze(dim=4)
-        x = self.upsample8(x)#8
+        x = self.upsample8(x) # 8
+        x = torch.cat([x, conv7], dim=2)
+        print("8", x.shape)
+
+        x = self.dconv_up6(x)
+        x = self.upsample2(x) # 16
+        x = torch.cat([x, conv6], dim=2)
+        print("9", x.shape)
+
+        x = self.dconv_up5(x)
+        x = self.upsample2(x) # 32
+        x = torch.cat([x, conv5], dim=2)
+        print("10", x.shape)
+
+        x = self.dconv_up4(x)
+        x = self.upsample2(x) # 64
         x = torch.cat([x, conv4], dim=2)
+        print("11", x.shape)
 
         x = self.dconv_up3(x)
-        x = self.upsample2(x)#16
+        x = self.upsample2(x) # prev 16, now 128
         x = torch.cat([x, conv3], dim=2)
+        print("12", x.shape)
 
         x = self.dconv_up2(x)
-        x = self.upsample2(x)#32
+        x = self.upsample2(x) # prev 32, now 256
         x = torch.cat([x, conv2], dim=2)
+        print("13", x.shape)
 
         x = self.dconv_up1(x)
-        x = self.upsample2(x)#64
+        x = self.upsample2(x) # prev 64, now 512
         x = torch.cat([x, conv1], dim=2)
+        print("14", x.shape)
 
         out = self.last_conv(x)
 

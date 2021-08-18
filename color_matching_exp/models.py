@@ -160,73 +160,73 @@ class UNet(nn.Module):
     def forward(self, x):
         
         conv1 = self.dconv_down1(x)
-        x = self.maxpool2(conv1) # prev 32, now 256
-        print("1", x.shape)
+        x = self.maxpool2(conv1) # prev 32x32, now 256x256
+        # print("1", x.shape)
 
         conv2 = self.dconv_down2(x)
         x = self.maxpool2(conv2) # prev 16, now 128
-        print("2", x.shape)
+        # print("2", x.shape)
 
         conv3 = self.dconv_down3(x)
         x = self.maxpool2(conv3) # prev 8, now 64
-        print("3", x.shape)
+        # print("3", x.shape)
 
         conv4 = self.dconv_down4(x)
         x = self.maxpool2(conv4) # prev 1 (END), now 32
-        print("4", x.shape)
+        # print("4", x.shape)
 
         conv5 = self.dconv_down5(x)
         x = self.maxpool2(conv5) # 16
-        print("5", x.shape) 
+        # print("5", x.shape) 
         
         conv6 = self.dconv_down6(x)
         x = self.maxpool2(conv6) # 8
-        print("6", x.shape)
+        # print("6", x.shape)
         
         conv7 = self.dconv_down7(x)
         x = self.maxpool8(conv7) # 1
-        print("7", x.shape)
+        # print("7", x.shape)
         
         # deep sets block
-        print("BEFORE SQUEEZE", x.size()) # should be (1, 5, x, 1, 1)
+        # print("BEFORE SQUEEZE", x.size()) # should be (1, 5, x, 1, 1)
         x = x.squeeze(dim=4)
         x = x.squeeze(dim=3)
-        print("AFTER SQUEEZE", x.size())
+        # print("AFTER SQUEEZE", x.size())
         x = self.feature_processing_block(x)
         x = x.unsqueeze(dim=3).unsqueeze(dim=4)
         x = self.upsample8(x) # 8
         x = torch.cat([x, conv7], dim=2)
-        print("8", x.shape)
+        # print("8", x.shape)
 
         x = self.dconv_up6(x)
         x = self.upsample2(x) # 16
         x = torch.cat([x, conv6], dim=2)
-        print("9", x.shape)
+        # print("9", x.shape)
 
         x = self.dconv_up5(x)
         x = self.upsample2(x) # 32
         x = torch.cat([x, conv5], dim=2)
-        print("10", x.shape)
+        # print("10", x.shape)
 
         x = self.dconv_up4(x)
         x = self.upsample2(x) # 64
         x = torch.cat([x, conv4], dim=2)
-        print("11", x.shape)
+        # print("11", x.shape)
 
         x = self.dconv_up3(x)
         x = self.upsample2(x) # prev 16, now 128
         x = torch.cat([x, conv3], dim=2)
-        print("12", x.shape)
+        # print("12", x.shape)
 
         x = self.dconv_up2(x)
         x = self.upsample2(x) # prev 32, now 256
         x = torch.cat([x, conv2], dim=2)
-        print("13", x.shape)
+        # print("13", x.shape)
 
         x = self.dconv_up1(x)
         x = self.upsample2(x) # prev 64, now 512
         x = torch.cat([x, conv1], dim=2)
-        print("14", x.shape)
+        # print("14", x.shape)
 
         out = self.last_conv(x)
 

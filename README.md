@@ -58,16 +58,9 @@ No established workflow yet!
 
 ## **NEW** - `color_matching_exp/`
 
-This code was copied from the folder with the same name from the [DSS paper](https://github.com/Haggaim/On-Learning-Sets-of-Symmetric-Elements). Briefly, their U-Net accepts sets of data of size 64x64 whereby each image in a set is a differently-colored version of the ground truth image. The U-Net uses these images to reproduce the original. In the paper, "color matching" is one of many experiments they conducted; if this network doesn't work, there are many others to choose from.
+This code was copied from the folder with the same name from the [DSS paper](https://github.com/Haggaim/On-Learning-Sets-of-Symmetric-Elements). Briefly, in their "color matching" experiment, a U-Net accepts sets of data of size 64x64 whereby each image in a set is a differently-colored version of the ground truth image. The network uses these images to reproduce the original. In the paper, color matching is one of many experiments they conducted; if this network doesn't work, there are many others to choose from.
 
-### Implemented changes:
-- `models.py`: Expanded the U-Net's upconv and pooling layers to accept 512x512 sized images
-- Created `run.py`: select and run a network
-- Created `load_sets.py`: load `.uvh5` files across 5 nights and, using an arbitrarily-defined Night 1 as reference, calculate the minimum shift for each antenna pair such that the total distance from each shifted image to the Night 1 reference is minimized. This calculation can be done via FFT or regular convolution. The shifts are then returned.
-- Created `shift_sets.py`: apply shifts to sets of images and crop as needed.
-
-### To-do:
-- Create a simulated dataset with ground truths to train on, before passing in 
+See [here](./notes.md) for the current status of the DSS network.
 
 ## `scripts/`
 
@@ -113,3 +106,4 @@ This code was copied from the folder with the same name from the [DSS paper](htt
 
 - (May 10, 2021) ValueError: numpy.ndarray size changed, may indicate binary incompatibility. Expected 88 from C header, got 80 from PyObject
     - `pip install numpy==1.20`
+
